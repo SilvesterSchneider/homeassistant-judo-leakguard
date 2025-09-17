@@ -1,0 +1,19 @@
+{
+  "title": "Judo Leakguard / i-soft",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect Judo device",
+        "description": "Enter IP/hostname and optional credentials.",
+        "data": {
+          "host": "Host/IP",
+          "use_https": "Use HTTPS",
+          "verify_ssl": "Verify SSL",
+          "username": "Username",
+          "password": "Password",
+          "send_data_as_query": "Send 'data' as query (?data=)"
+        }
+      }
+    }
+  }
+}

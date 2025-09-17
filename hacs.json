@@ -1,0 +1,6 @@
+{
+  "name": "Judo Leakguard / i-soft",
+  "render_readme": true,
+  "country": ["DE", "AT", "CH", "EU"],
+  "homeassistant": "2024.1.0"
+}
