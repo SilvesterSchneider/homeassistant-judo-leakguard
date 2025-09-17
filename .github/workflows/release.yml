@@ -1,7 +1,14 @@
 name: Release zip for HACS
+
 on:
   release:
     types: [published]
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
 
 jobs:
   build:

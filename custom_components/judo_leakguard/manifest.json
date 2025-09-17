@@ -3,7 +3,7 @@
   "name": "Judo Leakguard / i-soft",
   "documentation": "https://github.com/silvester-schneider/homeassistant-judo-leakguard",
   "issue_tracker": "https://github.com/silvester-schneider/homeassistant-judo-leakguard/issues",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "codeowners": ["@silvester-schneider", "@nova-ai"],
   "iot_class": "local_polling",
   "integration_type": "hub",
