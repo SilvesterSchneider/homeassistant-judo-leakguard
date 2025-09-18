@@ -1,45 +1,57 @@
 from __future__ import annotations
-from typing import Any
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.core import HomeAssistant
-from homeassistant.data_entry_flow import FlowResult
+from homeassistant.core import callback
+from homeassistant.const import CONF_HOST, CONF_USERNAME, CONF_PASSWORD
+from .const import DOMAIN, DEFAULT_HTTPS, DEFAULT_VERIFY_SSL, DEFAULT_SEND_DATA_AS_QUERY
+from .api import JudoClient
 
-from .const import DOMAIN
-from .client import JudoClient
+DATA_SCHEMA = vol.Schema({
+    vol.Required("host"): str,
+    vol.Required("username", default="admin"): str,
+    vol.Required("password", default="Connectivity"): str,
+    vol.Optional("https", default=DEFAULT_HTTPS): bool,
+    vol.Optional("verify_ssl", default=DEFAULT_VERIFY_SSL): bool,
+    vol.Optional("send_data_as_query", default=DEFAULT_SEND_DATA_AS_QUERY): bool,
+})
 
-STEP_USER_DATA_SCHEMA = vol.Schema(
-    {
-        vol.Required("host"): str,
-        vol.Optional("use_https", default=False): bool,
-        vol.Optional("verify_ssl", default=True): bool,
-        vol.Optional("username"): str,
-        vol.Optional("password"): str,
-        vol.Optional("send_data_as_query", default=False): bool,
-    }
-)
+class JudoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    VERSION = 1
 
-class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> FlowResult:
-        if user_input is None:
-            return self.async_show_form(step_id="user", data_schema=STEP_USER_DATA_SCHEMA)
+    async def async_step_user(self, user_input=None):
+        errors = {}
+        if user_input is not None:
+            client = JudoClient(
+                user_input["host"],
+                user_input["username"],
+                user_input["password"],
+                use_https=user_input["https"],
+                verify_ssl=user_input["verify_ssl"],
+                send_data_as_query=user_input["send_data_as_query"],
+            )
+            try:
+                dtype = await client.get_device_type()
+                if dtype != 0x44:
+                    errors["base"] = "wrong_device_type"
+                else:
+                    serial = await client.get_serial()
+                    await self.async_set_unique_id(f"zewa_{serial}")
+                    self._abort_if_unique_id_configured()
+                    return self.async_create_entry(title=f"ZEWA i‑SAFE ({serial[-5:]})", data=user_input)
+            except aiohttp.ClientResponseError:
+                errors["base"] = "invalid_auth"
+            except Exception:
+                errors["base"] = "cannot_connect"
+        return self.async_show_form(step_id="user", data_schema=DATA_SCHEMA, errors=errors)
 
-        # Probe device type to validate settings
-        client = JudoClient(
-            user_input["host"],
-            use_https=user_input.get("use_https", False),
-            verify_ssl=user_input.get("verify_ssl", True),
-            username=user_input.get("username"),
-            password=user_input.get("password"),
-            send_data_as_query=user_input.get("send_data_as_query", False),
-        )
-        try:
-            dtype = await client.get_device_type()
-            if dtype < 0:
-                return self.async_abort(reason="cannot_connect")
-        except Exception:
-            return self.async_abort(reason="cannot_connect")
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry):
+        return OptionsFlow(config_entry)
 
-        await self.async_set_unique_id(f"judo_{user_input['host']}")
-        self._abort_if_unique_id_configured()
-        return self.async_create_entry(title=f"Judo @ {user_input['host']}", data=user_input)
+class OptionsFlow(config_entries.OptionsFlow):
+    def __init__(self, entry):
+        self._entry = entry
+
+    async def async_step_init(self, user_input=None):
+        return self.async_show_form(step_id="init")

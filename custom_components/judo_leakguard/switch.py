@@ -1,52 +1,65 @@
 from __future__ import annotations
 from homeassistant.components.switch import SwitchEntity
-from homeassistant.helpers.entity import DeviceInfo
-
+from .api import JudoClient
 from .const import DOMAIN
 
-async def async_setup_entry(hass, entry, async_add_entities):
-    coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
-    client = hass.data[DOMAIN][entry.entry_id]["client"]
-    device_type = hass.data[DOMAIN][entry.entry_id]["device_type"]
+async def async_setup_entry(hass, entry, add_entities):
+    client: JudoClient = hass.data[DOMAIN][entry.entry_id]
+    add_entities([
+        ValveSwitch(client, entry),
+        SleepModeSwitch(client, entry),
+        VacationSwitch(client, entry),
+    ])
 
-    async_add_entities([JudoValveSwitch(coordinator, client, device_type)])
-
-class JudoValveSwitch(SwitchEntity):
-    _attr_name = "Leakguard Valve"
-    _attr_unique_id = None
-
-    def __init__(self, coordinator, client, device_type: int):
-        self.coordinator = coordinator
-        self.client = client
-        self.device_type = device_type
-        self._is_on = True  # assume open
+class _ActionSwitch(SwitchEntity):
+    _attr_has_entity_name = True
+    def __init__(self, client: JudoClient, entry):
+        self._client = client
+        self._entry = entry
+        self._state = False
 
     @property
-    def available(self) -> bool:
-        return self.coordinator.last_update_success
+    def device_info(self):
+        return {"identifiers": {(DOMAIN, self._entry.unique_id)}, "manufacturer": "JUDO", "model": "ZEWA i‑SAFE"}
 
-    @property
-    def is_on(self) -> bool:
-        return self._is_on
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        return DeviceInfo(
-            identifiers={(DOMAIN, self.coordinator.device_type)},
-            manufacturer="JUDO",
-            model=f"Type 0x{self.device_type:02X}",
-            name="Judo Leakguard",
-        )
-
-    async def async_turn_on(self, **kwargs):
-        await self.client.valve_open(self.device_type)
-        self._is_on = True
+class ValveSwitch(_ActionSwitch):
+    _attr_name = "Valve open"
+    async def async_turn_on(self):
+        await self._client.action_no_payload("5200")
+        self._state = True
         self.async_write_ha_state()
-
-    async def async_turn_off(self, **kwargs):
-        await self.client.valve_close(self.device_type)
-        self._is_on = False
+    async def async_turn_off(self):
+        await self._client.action_no_payload("5100")
+        self._state = False
         self.async_write_ha_state()
+    @property
+    def is_on(self):
+        return self._state
 
-    async def async_update(self):
-        await self.coordinator.async_request_refresh()
+class SleepModeSwitch(_ActionSwitch):
+    _attr_name = "Sleep mode"
+    async def async_turn_on(self):
+        await self._client.action_no_payload("5400")
+        self._state = True
+        self.async_write_ha_state()
+    async def async_turn_off(self):
+        await self._client.action_no_payload("5500")
+        self._state = False
+        self.async_write_ha_state()
+    @property
+    def is_on(self):
+        return self._state
+
+class VacationSwitch(_ActionSwitch):
+    _attr_name = "Vacation mode"
+    async def async_turn_on(self):
+        await self._client.action_no_payload("5700")
+        self._state = True
+        self.async_write_ha_state()
+    async def async_turn_off(self):
+        await self._client.action_no_payload("5800")
+        self._state = False
+        self.async_write_ha_state()
+    @property
+    def is_on(self):
+        return self._state

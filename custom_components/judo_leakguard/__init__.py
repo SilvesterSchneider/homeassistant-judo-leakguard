@@ -1,41 +1,30 @@
 from __future__ import annotations
-import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.const import Platform
+from .const import DOMAIN, PLATFORMS
+from .api import JudoClient
+import logging
 
-from .const import DOMAIN
-from .client import JudoClient
-from .coordinator import JudoCoordinator
-
-PLATFORMS = ["switch", "sensor"]
 _LOGGER = logging.getLogger(__name__)
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    hass.data.setdefault(DOMAIN, {})
     client = JudoClient(
-        entry.data["host"],
-        use_https=entry.data.get("use_https", False),
+        host=entry.data["host"],
+        username=entry.data["username"],
+        password=entry.data["password"],
+        use_https=entry.data.get("https", False),
         verify_ssl=entry.data.get("verify_ssl", True),
-        username=entry.data.get("username"),
-        password=entry.data.get("password"),
         send_data_as_query=entry.data.get("send_data_as_query", False),
     )
-    dtype = await client.get_device_type()
-    coord = JudoCoordinator(hass, client, dtype)
-    await coord.async_config_entry_first_refresh()
-
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {
-        "client": client,
-        "coordinator": coord,
-        "device_type": dtype,
-    }
-
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    hass.data[DOMAIN][entry.entry_id] = client
+    await hass.config_entries.async_forward_entry_setups(entry, [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.SWITCH, Platform.BUTTON, Platform.NUMBER, Platform.SELECT])
     return True
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.SWITCH, Platform.BUTTON, Platform.NUMBER, Platform.SELECT])
     if unload_ok:
-        data = hass.data[DOMAIN].pop(entry.entry_id, None)
-        if data and (client := data.get("client")):
-            await client.close()
+        hass.data[DOMAIN].pop(entry.entry_id, None)
     return unload_ok
