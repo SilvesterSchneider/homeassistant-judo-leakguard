@@ -1,13 +1,11 @@
 {
   "domain": "judo_leakguard",
-  "name": "JUDO ZEWA i-SAFE (local)",
-  "version": "0.2.2",
-  "config_flow": true,
-  "documentation": "https://github.com/SilvesterSchneider/homeassistant-judo-leakguard",
-  "issue_tracker": "https://github.com/SilvesterSchneider/homeassistant-judo-leakguard/issues",
-  "codeowners": ["@SilvesterSchneider", "@Nova"],
+  "name": "Judo Leakguard (ZEWA i-SAFE)",
+  "version": "0.2.3",
+  "codeowners": ["@SilvesterSchneider"],
   "iot_class": "local_polling",
   "integration_type": "device",
   "requirements": [],
+  "after_dependencies": ["http"],
   "loggers": ["custom_components.judo_leakguard"]
 }

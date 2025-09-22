@@ -1,36 +1,13 @@
-DOMAIN = "judo_leakguard"
+from __future__ import annotations
 
-# Config defaults
-DEFAULT_HTTPS = False
-DEFAULT_VERIFY_SSL = True
-DEFAULT_SEND_DATA_AS_QUERY = False  # False = POST bevorzugt; True = GET mit ?data=...
+from datetime import timedelta
+from typing import Final
 
-# JUDO ZEWA i-SAFE device type (expected reply to FF00)
-DEVICE_TYPE_ZEWA = 0x44
+DOMAIN: Final[str] = "judo_leakguard"
 
-# API command codes (hex)
-CMD_DEVICE_TYPE = "FF00"
-CMD_SERIAL = "0600"
-CMD_FW = "0100"
-CMD_INSTALL_TS = "0E00"
-CMD_TOTAL_WATER = "2800"
+DEFAULT_SCAN_INTERVAL: Final[timedelta] = timedelta(seconds=30)
 
-# ZEWA specific actions/reads
-CMD_ALARM_RESET = "6300"
-CMD_CLOSE = "5100"
-CMD_OPEN = "5200"
-CMD_SLEEP_START = "5400"
-CMD_SLEEP_STOP = "5500"
-CMD_VAC_START = "5700"
-CMD_VAC_STOP = "5800"
-CMD_MICROLEAK_TEST = "5C00"
-CMD_LEARN_START = "5D00"
-CMD_ABSENCE_LIMITS_READ = "5E00"   # 3x 2 Bytes: flow L/h, volume L, minutes
-CMD_LEAK_SETTINGS_WRITE = "50"      # +7 Bytes payload
-CMD_SLEEP_DURATION_WRITE = "53"     # +1 Byte
-CMD_SLEEP_DURATION_READ = "6600"
-CMD_VACATION_TYPE_WRITE = "56"      # +1 Byte (0..3)
-CMD_LEARN_STATUS_READ = "6400"      # 1 Byte active + 2 Bytes remaining
-CMD_MICROLEAK_MODE_READ = "6500"
-CMD_DATETIME_READ = "5900"
-CMD_DATETIME_WRITE = "5A"
+# Optionale Keys – nur benutzt, falls im ConfigEntry vorhanden
+CONF_PROTOCOL: Final[str] = "protocol"   # "http" | "https"
+CONF_PORT: Final[str] = "port"           # int
+CONF_VERIFY_SSL: Final[str] = "verify_ssl"  # bool
