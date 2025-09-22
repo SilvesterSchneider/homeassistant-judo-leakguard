@@ -7,8 +7,13 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from custom_components.judo_leakguard.api import (
+    AbsenceLimits,
+    DeviceClock,
+    InstallationInfo,
     JudoAuthenticationError,
     JudoLeakguardApi,
+    LearnStatus,
+    TotalWater,
 )
 
 
@@ -69,16 +74,25 @@ def test_normalize_converts_totals(raw, total_expected, monkeypatch):
 async def test_collect_rest_data_gathers(monkeypatch):
     api = make_api()
     monkeypatch.setattr(api, "read_sleep_duration", AsyncMock(return_value=6))
-    monkeypatch.setattr(api, "read_absence_limits", AsyncMock(return_value=(10, 20, 30)))
+    monkeypatch.setattr(api, "read_absence_limits", AsyncMock(return_value=AbsenceLimits(10, 20, 30)))
     monkeypatch.setattr(api, "read_microleak_mode", AsyncMock(return_value=2))
     monkeypatch.setattr(api, "read_vacation_type", AsyncMock(return_value=1))
-    monkeypatch.setattr(api, "read_learn_status", AsyncMock(return_value={"learn_active": 1}))
-    monkeypatch.setattr(api, "read_device_time", AsyncMock(return_value={"device_time": "2023-01-01T00:00:00Z"}))
+    monkeypatch.setattr(api, "read_learn_status", AsyncMock(return_value=LearnStatus(True, 50)))
+    monkeypatch.setattr(
+        api,
+        "read_device_time",
+        AsyncMock(return_value=DeviceClock(1, 1, 2023, 0, 0, 0)),
+    )
     monkeypatch.setattr(api, "read_device_type", AsyncMock(return_value="Leakguard"))
     monkeypatch.setattr(api, "read_serial_number", AsyncMock(return_value="123"))
     monkeypatch.setattr(api, "read_firmware_version", AsyncMock(return_value="1.2.3"))
-    monkeypatch.setattr(api, "read_installation_timestamp", AsyncMock(return_value={"installation_datetime": "2020-01-01T00:00:00Z"}))
-    monkeypatch.setattr(api, "read_total_water", AsyncMock(return_value={"total_water_l": 1200}))
+    install_ts = int(datetime(2020, 1, 1, tzinfo=timezone.utc).timestamp())
+    monkeypatch.setattr(
+        api,
+        "read_installation_timestamp",
+        AsyncMock(return_value=InstallationInfo(install_ts)),
+    )
+    monkeypatch.setattr(api, "read_total_water", AsyncMock(return_value=TotalWater(1200)))
 
     result = await api._collect_rest_data()
     assert result["sleep_hours"] == 6
@@ -87,9 +101,10 @@ async def test_collect_rest_data_gathers(monkeypatch):
     assert result["absence_duration_min"] == 30
     assert result["microleak_mode"] == 2
     assert result["vacation_type"] == 1
-    assert result["learn_active"] == 1
-    assert result["device_time"] == "2023-01-01T00:00:00Z"
-    assert result["installation_datetime"] == "2020-01-01T00:00:00Z"
+    assert result["learn_active"] is True
+    assert result["learn_remaining_l"] == 50
+    assert result["device_time"] == "2023-01-01T00:00:00"
+    assert result["installation_datetime"].isoformat() == "2020-01-01T00:00:00+00:00"
     assert result["total_water_l"] == 1200
 
 

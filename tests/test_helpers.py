@@ -53,3 +53,13 @@ def test_build_unique_id_uses_serial():
 
 def test_build_unique_id_falls_back_to_unknown():
     assert helpers.build_unique_id({}, "sensor") == "unknown_sensor"
+
+
+def test_big_endian_helpers_roundtrip():
+    assert helpers.toU8(300) == b"\xff"
+    assert helpers.toU16BE(0x1234) == b"\x12\x34"
+    assert helpers.fromU16BE(b"\x12\x34") == 0x1234
+    assert helpers.toU32BE(0x01020304) == b"\x01\x02\x03\x04"
+    assert helpers.fromU32BE(b"\x01\x02\x03\x04") == 0x01020304
+    with pytest.raises(ValueError):
+        helpers.fromU16BE(b"\x01")

@@ -3,13 +3,134 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional, Sequence
+from typing import Any, Dict, Mapping, Optional, Sequence
 
 import aiohttp
 from homeassistant.util.dt import utcnow
 
+from .helpers import fromU16BE, fromU32BE, toU16BE, toU32BE, toU8
+
 _LOGGER = logging.getLogger(__name__)
+
+
+@dataclass(slots=True, frozen=True)
+class AbsenceLimits:
+    """Absence monitoring thresholds reported by the device."""
+
+    flow_l_h: int
+    volume_l: int
+    duration_min: int
+
+    def to_dict(self) -> Dict[str, int]:
+        return {
+            "absence_flow_l_h": self.flow_l_h,
+            "absence_volume_l": self.volume_l,
+            "absence_duration_min": self.duration_min,
+        }
+
+
+@dataclass(slots=True, frozen=True)
+class LearnStatus:
+    """Status information for the learn mode."""
+
+    active: bool
+    remaining_l: Optional[int] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        data: Dict[str, Any] = {"learn_active": self.active}
+        if self.remaining_l is not None:
+            data["learn_remaining_l"] = self.remaining_l
+            data["learn_remaining_m3"] = self.remaining_l / 1000.0
+        return data
+
+
+@dataclass(slots=True, frozen=True)
+class DeviceClock:
+    """Current device clock information."""
+
+    day: int
+    month: int
+    year: int
+    hour: int
+    minute: int
+    second: int
+
+    def as_datetime(self) -> Optional[datetime]:
+        try:
+            return datetime(self.year, max(self.month, 1), max(self.day, 1), self.hour, self.minute, self.second)
+        except ValueError:
+            return None
+
+    def to_dict(self) -> Dict[str, Any]:
+        data: Dict[str, Any] = {
+            "device_time_day": self.day,
+            "device_time_month": self.month,
+            "device_time_year": self.year,
+            "device_time_hour": self.hour,
+            "device_time_minute": self.minute,
+            "device_time_second": self.second,
+        }
+        dt = self.as_datetime()
+        if dt is not None:
+            data["device_time"] = dt.isoformat()
+            data["device_time_datetime"] = dt
+        return data
+
+
+@dataclass(slots=True, frozen=True)
+class InstallationInfo:
+    """Installation timestamp reported by the device."""
+
+    timestamp: int
+
+    def as_datetime(self) -> datetime:
+        return datetime.fromtimestamp(self.timestamp, tz=timezone.utc)
+
+    def to_dict(self) -> Dict[str, Any]:
+        dt = self.as_datetime()
+        return {
+            "installation_timestamp": self.timestamp,
+            "installation_datetime": dt,
+        }
+
+
+@dataclass(slots=True, frozen=True)
+class TotalWater:
+    """Accumulated water usage."""
+
+    liters: int
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "total_water_l": self.liters,
+            "total_water_m3": self.liters / 1000.0,
+        }
+
+
+@dataclass(slots=True, frozen=True)
+class AbsenceWindow:
+    """Absence schedule entry."""
+
+    slot: int
+    start_day: int
+    start_hour: int
+    start_minute: int
+    end_day: int
+    end_hour: int
+    end_minute: int
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "slot": self.slot,
+            "start_day": self.start_day,
+            "start_hour": self.start_hour,
+            "start_minute": self.start_minute,
+            "end_day": self.end_day,
+            "end_hour": self.end_hour,
+            "end_minute": self.end_minute,
+        }
 
 
 class JudoApiError(Exception):
@@ -45,6 +166,10 @@ class JudoClient:
         self._timeout = aiohttp.ClientTimeout(total=request_timeout)
         self._auth = aiohttp.BasicAuth(username or "", password or "") if username or password else None
         self._send_as_query = send_as_query
+        self._request_lock = asyncio.Lock()
+        self._max_attempts = 5
+        self._initial_retry_delay = 2.0
+        self._max_retry_delay = 30.0
 
     def _url(self, path: str) -> str:
         if not path.startswith("/"):
@@ -53,48 +178,70 @@ class JudoClient:
 
     async def _fetch_json(self, path: str) -> Optional[Dict[str, Any]]:
         """Fetch JSON from the device. Returns None for 404 responses."""
+
         url = self._url(path)
-        try:
-            async with self._session.get(
-                url,
-                timeout=self._timeout,
-                ssl=self._verify_ssl,
-                auth=self._auth,
-            ) as resp:
-                if resp.status == 404:
+        delay = self._initial_retry_delay
+        attempt = 0
+        async with self._request_lock:
+            while attempt < self._max_attempts:
+                attempt += 1
+                try:
+                    async with self._session.get(
+                        url,
+                        timeout=self._timeout,
+                        ssl=self._verify_ssl,
+                        auth=self._auth,
+                    ) as resp:
+                        if resp.status == 404:
+                            return None
+                        if resp.status in (401, 403):
+                            raise JudoAuthenticationError(
+                                f"Authentication failed for {url} (status={resp.status})"
+                            )
+                        if resp.status == 429:
+                            if attempt >= self._max_attempts:
+                                raise JudoConnectionError(f"Rate limited on {url}")
+                            delay = await self._handle_rate_limit(url, attempt, delay, resp.headers)
+                            continue
+                        resp.raise_for_status()
+                        text = await resp.text()
+                        if not text:
+                            return None
+                        return json.loads(text)
+                except JudoAuthenticationError:
+                    raise
+                except asyncio.TimeoutError as exc:
+                    raise JudoConnectionError(f"Timeout while requesting {url}") from exc
+                except aiohttp.ClientConnectorError as exc:
+                    raise JudoConnectionError(f"Cannot connect to {url}: {exc}") from exc
+                except aiohttp.ClientResponseError as exc:
+                    if exc.status == 404:
+                        return None
+                    if exc.status in (401, 403):
+                        raise JudoAuthenticationError(
+                            f"Authentication failed for {url} (status={exc.status})"
+                        ) from exc
+                    if exc.status == 429:
+                        if attempt >= self._max_attempts:
+                            raise JudoConnectionError(f"Rate limited on {url}") from exc
+                        delay = await self._handle_rate_limit(
+                            url,
+                            attempt,
+                            delay,
+                            getattr(exc, "headers", None),
+                        )
+                        continue
+                    _LOGGER.debug("Unexpected response from %s: %s", url, exc)
                     return None
-                if resp.status in (401, 403):
-                    raise JudoAuthenticationError(
-                        f"Authentication failed for {url} (status={resp.status})"
-                    )
-                resp.raise_for_status()
-                text = await resp.text()
-                if not text:
+                except aiohttp.ClientError as exc:
+                    raise JudoConnectionError(f"Client error while requesting {url}: {exc}") from exc
+                except json.JSONDecodeError as exc:
+                    _LOGGER.debug("Invalid JSON from %s: %s", url, exc)
                     return None
-                return json.loads(text)
-        except JudoAuthenticationError:
-            raise
-        except asyncio.TimeoutError as exc:
-            raise JudoConnectionError(f"Timeout while requesting {url}") from exc
-        except aiohttp.ClientConnectorError as exc:
-            raise JudoConnectionError(f"Cannot connect to {url}: {exc}") from exc
-        except aiohttp.ClientResponseError as exc:
-            if exc.status == 404:
-                return None
-            if exc.status in (401, 403):
-                raise JudoAuthenticationError(
-                    f"Authentication failed for {url} (status={exc.status})"
-                ) from exc
-            _LOGGER.debug("Unexpected response from %s: %s", url, exc)
-            return None
-        except aiohttp.ClientError as exc:
-            raise JudoConnectionError(f"Client error while requesting {url}: {exc}") from exc
-        except json.JSONDecodeError as exc:
-            _LOGGER.debug("Invalid JSON from %s: %s", url, exc)
-            return None
-        except Exception as exc:  # pylint: disable=broad-except
-            _LOGGER.debug("Fetch failed for %s: %s", url, exc)
-            return None
+                except Exception as exc:  # pylint: disable=broad-except
+                    _LOGGER.debug("Fetch failed for %s: %s", url, exc)
+                    return None
+        raise JudoConnectionError(f"Exceeded retry budget for {url}")
 
     @staticmethod
     def _format_command(command: int | str) -> str:
@@ -168,6 +315,34 @@ class JudoClient:
                 return candidate
         return None
 
+    async def _handle_rate_limit(
+        self,
+        url: str,
+        attempt: int,
+        delay: float,
+        headers: Optional[Mapping[str, str]],
+    ) -> float:
+        """Handle 429 responses by sleeping and returning the next delay."""
+
+        wait_time = max(delay, self._initial_retry_delay)
+        if headers:
+            retry_after = headers.get("Retry-After")
+            if retry_after:
+                try:
+                    parsed = float(retry_after)
+                    wait_time = max(wait_time, parsed)
+                except ValueError:
+                    _LOGGER.debug("Invalid Retry-After header '%s' from %s", retry_after, url)
+        _LOGGER.debug(
+            "Rate limited on %s (attempt %s/%s), waiting %.1fs",
+            url,
+            attempt,
+            self._max_attempts,
+            wait_time,
+        )
+        await asyncio.sleep(wait_time)
+        return min(wait_time * 2, self._max_retry_delay)
+
     async def _rest_request(
         self,
         command: int | str,
@@ -180,41 +355,68 @@ class JudoClient:
         else:
             path = f"/api/rest/{cmd_hex}{payload_hex}"
         url = self._url(path)
-        try:
-            async with self._session.get(
-                url,
-                timeout=self._timeout,
-                ssl=self._verify_ssl,
-                auth=self._auth,
-            ) as resp:
-                if resp.status == 404:
+        delay = self._initial_retry_delay
+        attempt = 0
+        text = ""
+        success = False
+        async with self._request_lock:
+            while attempt < self._max_attempts:
+                attempt += 1
+                try:
+                    async with self._session.get(
+                        url,
+                        timeout=self._timeout,
+                        ssl=self._verify_ssl,
+                        auth=self._auth,
+                    ) as resp:
+                        if resp.status == 404:
+                            return {}
+                        if resp.status in (401, 403):
+                            raise JudoAuthenticationError(
+                                f"Authentication failed for {url} (status={resp.status})"
+                            )
+                        if resp.status == 429:
+                            if attempt >= self._max_attempts:
+                                raise JudoConnectionError(f"Rate limited on {url}")
+                            delay = await self._handle_rate_limit(url, attempt, delay, resp.headers)
+                            continue
+                        resp.raise_for_status()
+                        text = await resp.text()
+                        success = True
+                except JudoAuthenticationError:
+                    raise
+                except asyncio.TimeoutError as exc:
+                    raise JudoConnectionError(f"Timeout while requesting {url}") from exc
+                except aiohttp.ClientConnectorError as exc:
+                    raise JudoConnectionError(f"Cannot connect to {url}: {exc}") from exc
+                except aiohttp.ClientResponseError as exc:
+                    if exc.status == 404:
+                        return {}
+                    if exc.status in (401, 403):
+                        raise JudoAuthenticationError(
+                            f"Authentication failed for {url} (status={exc.status})"
+                        ) from exc
+                    if exc.status == 429:
+                        if attempt >= self._max_attempts:
+                            raise JudoConnectionError(f"Rate limited on {url}") from exc
+                        delay = await self._handle_rate_limit(
+                            url,
+                            attempt,
+                            delay,
+                            getattr(exc, "headers", None),
+                        )
+                        continue
+                    _LOGGER.debug("REST command %s failed: %s", url, exc)
                     return {}
-                if resp.status in (401, 403):
-                    raise JudoAuthenticationError(
-                        f"Authentication failed for {url} (status={resp.status})"
-                    )
-                resp.raise_for_status()
-                text = await resp.text()
-        except JudoAuthenticationError:
-            raise
-        except asyncio.TimeoutError as exc:
-            raise JudoConnectionError(f"Timeout while requesting {url}") from exc
-        except aiohttp.ClientConnectorError as exc:
-            raise JudoConnectionError(f"Cannot connect to {url}: {exc}") from exc
-        except aiohttp.ClientResponseError as exc:
-            if exc.status == 404:
-                return {}
-            if exc.status in (401, 403):
-                raise JudoAuthenticationError(
-                    f"Authentication failed for {url} (status={exc.status})"
-                ) from exc
-            _LOGGER.debug("REST command %s failed: %s", url, exc)
-            return {}
-        except aiohttp.ClientError as exc:
-            raise JudoConnectionError(f"Client error while requesting {url}: {exc}") from exc
-        except Exception as exc:  # pylint: disable=broad-except
-            _LOGGER.debug("REST command %s raised %s", url, exc)
-            return {}
+                except aiohttp.ClientError as exc:
+                    raise JudoConnectionError(f"Client error while requesting {url}: {exc}") from exc
+                except Exception as exc:  # pylint: disable=broad-except
+                    _LOGGER.debug("REST command %s raised %s", url, exc)
+                    return {}
+                if success:
+                    break
+        if not success:
+            raise JudoConnectionError(f"Exceeded retry budget for {url}")
 
         if not text:
             return {}
@@ -246,7 +448,7 @@ class JudoClient:
 
     async def write_sleep_duration(self, hours: int) -> None:
         value = max(1, min(int(hours), 10))
-        await self._rest_request(0x53, bytes([value]))
+        await self._rest_request(0x53, toU8(value))
 
     async def read_sleep_duration(self) -> Optional[int]:
         data = await self._rest_bytes(0x66, allow_empty=True)
@@ -254,21 +456,17 @@ class JudoClient:
             return None
         return int(data[0])
 
-    async def read_absence_limits(self) -> Optional[tuple[int, int, int]]:
+    async def read_absence_limits(self) -> Optional[AbsenceLimits]:
         data = await self._rest_bytes(0x5E, allow_empty=True)
         if len(data) < 6:
             return None
-        flow = int.from_bytes(data[0:2], "little", signed=False)
-        volume = int.from_bytes(data[2:4], "little", signed=False)
-        duration = int.from_bytes(data[4:6], "little", signed=False)
-        return flow, volume, duration
+        flow = fromU16BE(data, 0)
+        volume = fromU16BE(data, 2)
+        duration = fromU16BE(data, 4)
+        return AbsenceLimits(flow, volume, duration)
 
     async def write_absence_limits(self, flow: int, volume: int, duration: int) -> None:
-        payload = (
-            max(0, min(int(flow), 0xFFFF)).to_bytes(2, "little")
-            + max(0, min(int(volume), 0xFFFF)).to_bytes(2, "little")
-            + max(0, min(int(duration), 0xFFFF)).to_bytes(2, "little")
-        )
+        payload = toU16BE(flow) + toU16BE(volume) + toU16BE(duration)
         await self._rest_request(0x5F, payload)
 
     async def write_leak_settings(
@@ -278,15 +476,15 @@ class JudoClient:
         volume: int,
         duration: int,
     ) -> None:
-        payload = bytes([max(0, min(int(vacation_type), 3))])
-        payload += max(0, min(int(flow), 0xFFFF)).to_bytes(2, "little")
-        payload += max(0, min(int(volume), 0xFFFF)).to_bytes(2, "little")
-        payload += max(0, min(int(duration), 0xFFFF)).to_bytes(2, "little")
+        payload = toU8(max(0, min(int(vacation_type), 3)))
+        payload += toU16BE(flow)
+        payload += toU16BE(volume)
+        payload += toU16BE(duration)
         await self._rest_request(0x50, payload)
 
     async def write_vacation_type(self, mode: int) -> None:
         value = max(0, min(int(mode), 3))
-        await self._rest_request(0x56, bytes([value]))
+        await self._rest_request(0x56, toU8(value))
 
     async def read_vacation_type(self) -> Optional[int]:
         data = await self._rest_bytes(0x56, allow_empty=True)
@@ -296,7 +494,7 @@ class JudoClient:
 
     async def write_microleak_mode(self, mode: int) -> None:
         value = max(0, min(int(mode), 2))
-        await self._rest_request(0x5B, bytes([value]))
+        await self._rest_request(0x5B, toU8(value))
 
     async def read_microleak_mode(self) -> Optional[int]:
         data = await self._rest_bytes(0x65, allow_empty=True)
@@ -304,41 +502,22 @@ class JudoClient:
             return None
         return int(data[0])
 
-    async def read_learn_status(self) -> Dict[str, Any]:
+    async def read_learn_status(self) -> Optional[LearnStatus]:
         data = await self._rest_bytes(0x64, allow_empty=True)
         if not data:
-            return {}
-        result: Dict[str, Any] = {
-            "learn_active": bool(data[0]),
-        }
+            return None
+        remaining: Optional[int] = None
         if len(data) >= 3:
-            remaining_l = int.from_bytes(data[1:3], "little", signed=False)
-            result["learn_remaining_l"] = remaining_l
-            result["learn_remaining_m3"] = remaining_l / 1000.0
-        return result
+            remaining = fromU16BE(data, 1)
+        return LearnStatus(bool(data[0]), remaining)
 
-    async def read_device_time(self) -> Dict[str, Any]:
+    async def read_device_time(self) -> Optional[DeviceClock]:
         data = await self._rest_bytes(0x59, allow_empty=True)
         if len(data) != 6:
-            return {}
-        day, month, year, hour, minute, second = [int(x) for x in data]
-        year_full = year + 2000 if year < 200 else year
-        try:
-            dt = datetime(year_full, max(month, 1), max(day, 1), hour, minute, second)
-        except ValueError:
-            dt = None
-        result: Dict[str, Any] = {
-            "device_time_day": day,
-            "device_time_month": month,
-            "device_time_year": year_full,
-            "device_time_hour": hour,
-            "device_time_minute": minute,
-            "device_time_second": second,
-        }
-        if dt is not None:
-            result["device_time"] = dt.isoformat()
-            result["device_time_datetime"] = dt
-        return result
+            return None
+        day, month, year_short, hour, minute, second = [int(x) for x in data]
+        year_full = year_short + 2000 if year_short < 200 else year_short
+        return DeviceClock(day, month, year_full, hour, minute, second)
 
     async def write_device_time(self, dt: datetime) -> None:
         payload = bytes(
@@ -363,8 +542,7 @@ class JudoClient:
         data = await self._rest_bytes(0x06, allow_empty=True)
         if len(data) < 4:
             return None
-        value = int.from_bytes(data[:4], "little", signed=False)
-        return str(value)
+        return data[:4].hex().upper()
 
     async def read_firmware_version(self) -> Optional[str]:
         data = await self._rest_bytes(0x01, allow_empty=True)
@@ -385,41 +563,35 @@ class JudoClient:
             return str(int(data[0]))
         return None
 
-    async def read_installation_timestamp(self) -> Dict[str, Any]:
+    async def read_installation_timestamp(self) -> Optional[InstallationInfo]:
         data = await self._rest_bytes(0x0E, allow_empty=True)
         if len(data) < 4:
-            return {}
-        timestamp = int.from_bytes(data[:4], "big", signed=False)
-        dt = datetime.fromtimestamp(timestamp, tz=timezone.utc)
-        return {
-            "installation_timestamp": timestamp,
-            "installation_datetime": dt,
-        }
+            return None
+        timestamp = fromU32BE(data, 0)
+        return InstallationInfo(timestamp)
 
-    async def read_total_water(self) -> Dict[str, Any]:
+    async def read_total_water(self) -> Optional[TotalWater]:
         data = await self._rest_bytes(0x28, allow_empty=True)
         if len(data) < 4:
-            return {}
-        total_l = int.from_bytes(data[:4], "little", signed=False)
-        return {
-            "total_water_l": total_l,
-            "total_water_m3": total_l / 1000.0,
-        }
+            return None
+        total_l = fromU32BE(data, 0)
+        return TotalWater(total_l)
 
-    async def read_absence_time(self, slot: int) -> Dict[str, Any]:
-        payload = bytes([max(0, min(int(slot), 6))])
+    async def read_absence_time(self, slot: int) -> Optional[AbsenceWindow]:
+        slot_idx = max(0, min(int(slot), 6))
+        payload = bytes([slot_idx])
         data = await self._rest_bytes(0x60, payload, allow_empty=True)
         if len(data) != 6:
-            return {}
-        return {
-            "slot": slot,
-            "start_day": int(data[0]),
-            "start_hour": int(data[1]),
-            "start_minute": int(data[2]),
-            "end_day": int(data[3]),
-            "end_hour": int(data[4]),
-            "end_minute": int(data[5]),
-        }
+            return None
+        return AbsenceWindow(
+            slot=slot_idx,
+            start_day=int(data[0]),
+            start_hour=int(data[1]),
+            start_minute=int(data[2]),
+            end_day=int(data[3]),
+            end_hour=int(data[4]),
+            end_minute=int(data[5]),
+        )
 
     async def write_absence_time(
         self,
@@ -449,27 +621,42 @@ class JudoClient:
         await self._rest_request(0x62, payload)
 
     async def read_day_stats(self, day: int, month: int, year: int) -> list[int]:
-        payload = bytes([
-            max(1, min(int(day), 31)),
-            max(1, min(int(month), 12)),
-        ]) + int(year).to_bytes(2, "little", signed=False)
+        payload = toU8(max(1, min(int(day), 31)))
+        payload += toU8(max(1, min(int(month), 12)))
+        payload += toU16BE(year)
         data = await self._rest_bytes(0xFB, payload, allow_empty=True)
-        return [int.from_bytes(data[i : i + 4], "little", signed=False) for i in range(0, len(data), 4)]
+        values: list[int] = []
+        for i in range(0, len(data), 4):
+            if i + 4 <= len(data):
+                values.append(fromU32BE(data, i))
+        return values
 
     async def read_week_stats(self, week: int, year: int) -> list[int]:
-        payload = bytes([max(1, min(int(week), 53))]) + int(year).to_bytes(2, "little", signed=False)
+        payload = toU8(max(1, min(int(week), 53))) + toU16BE(year)
         data = await self._rest_bytes(0xFC, payload, allow_empty=True)
-        return [int.from_bytes(data[i : i + 4], "little", signed=False) for i in range(0, len(data), 4)]
+        values: list[int] = []
+        for i in range(0, len(data), 4):
+            if i + 4 <= len(data):
+                values.append(fromU32BE(data, i))
+        return values
 
     async def read_month_stats(self, month: int, year: int) -> list[int]:
-        payload = bytes([max(1, min(int(month), 12))]) + int(year).to_bytes(2, "little", signed=False)
+        payload = toU8(max(1, min(int(month), 12))) + toU16BE(year)
         data = await self._rest_bytes(0xFD, payload, allow_empty=True)
-        return [int.from_bytes(data[i : i + 4], "little", signed=False) for i in range(0, len(data), 4)]
+        values: list[int] = []
+        for i in range(0, len(data), 4):
+            if i + 4 <= len(data):
+                values.append(fromU32BE(data, i))
+        return values
 
     async def read_year_stats(self, year: int) -> list[int]:
-        payload = int(year).to_bytes(2, "little", signed=False)
+        payload = toU16BE(year)
         data = await self._rest_bytes(0xFE, payload, allow_empty=True)
-        return [int.from_bytes(data[i : i + 4], "little", signed=False) for i in range(0, len(data), 4)]
+        values: list[int] = []
+        for i in range(0, len(data), 4):
+            if i + 4 <= len(data):
+                values.append(fromU32BE(data, i))
+        return values
 
 
 class JudoLeakguardApi(JudoClient):
@@ -639,10 +826,7 @@ class JudoLeakguardApi(JudoClient):
         try:
             absence = await self.read_absence_limits()
             if absence is not None:
-                flow, volume, duration = absence
-                data["absence_flow_l_h"] = flow
-                data["absence_volume_l"] = volume
-                data["absence_duration_min"] = duration
+                data.update(absence.to_dict())
         except (JudoAuthenticationError, JudoConnectionError):
             raise
         except JudoApiError as exc:
@@ -668,8 +852,8 @@ class JudoLeakguardApi(JudoClient):
 
         try:
             learn = await self.read_learn_status()
-            if learn:
-                data.update(learn)
+            if learn is not None:
+                data.update(learn.to_dict())
         except (JudoAuthenticationError, JudoConnectionError):
             raise
         except JudoApiError as exc:
@@ -677,8 +861,8 @@ class JudoLeakguardApi(JudoClient):
 
         try:
             device_time = await self.read_device_time()
-            if device_time:
-                data.update(device_time)
+            if device_time is not None:
+                data.update(device_time.to_dict())
         except (JudoAuthenticationError, JudoConnectionError):
             raise
         except JudoApiError as exc:
@@ -714,8 +898,8 @@ class JudoLeakguardApi(JudoClient):
 
         try:
             installation = await self.read_installation_timestamp()
-            if installation:
-                data.update(installation)
+            if installation is not None:
+                data.update(installation.to_dict())
         except (JudoAuthenticationError, JudoConnectionError):
             raise
         except JudoApiError as exc:
@@ -723,8 +907,8 @@ class JudoLeakguardApi(JudoClient):
 
         try:
             total = await self.read_total_water()
-            if total:
-                data.update(total)
+            if total is not None:
+                data.update(total.to_dict())
         except (JudoAuthenticationError, JudoConnectionError):
             raise
         except JudoApiError as exc:
