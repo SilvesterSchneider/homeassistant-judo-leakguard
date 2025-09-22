@@ -25,7 +25,7 @@ class _Base(CoordinatorEntity, SelectEntity):
         self._attr_unique_id = build_unique_id(device_data, key)
 
 class VacationType(_Base):
-    _attr_name = "Vacation type"
+    _attr_translation_key = "vacation_type"
     _attr_options = VAC_OPTIONS
     def __init__(self, coordinator, client: JudoClient, entry):
         super().__init__(coordinator, client, entry, "vacation_type")
@@ -40,7 +40,7 @@ class VacationType(_Base):
         await self.coordinator.async_request_refresh()
 
 class MicroLeakMode(_Base):
-    _attr_name = "Micro-leak mode (set)"
+    _attr_translation_key = "microleak_mode_set"
     _attr_options = ["off","notify","notify_close"]
     def __init__(self, coordinator, client: JudoClient, entry):
         super().__init__(coordinator, client, entry, "microleak_mode")

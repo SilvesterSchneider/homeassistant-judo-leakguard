@@ -29,21 +29,21 @@ class _Base(CoordinatorEntity, ButtonEntity):
         self._attr_unique_id = build_unique_id(device_data, key)
 
 class AlarmReset(_Base):
-    _attr_name = "Reset alarms"
+    _attr_translation_key = "reset_alarms"
     def __init__(self, coordinator, client: JudoClient, entry):
         super().__init__(coordinator, client, entry, "alarm_reset")
     async def async_press(self):
         await self._client.action_no_payload("6300")
 
 class MicroLeakTest(_Base):
-    _attr_name = "Start micro-leak test"
+    _attr_translation_key = "start_microleak_test"
     def __init__(self, coordinator, client: JudoClient, entry):
         super().__init__(coordinator, client, entry, "microleak_test")
     async def async_press(self):
         await self._client.action_no_payload("5C00")
 
 class LearnStart(_Base):
-    _attr_name = "Start learning"
+    _attr_translation_key = "start_learning"
     def __init__(self, coordinator, client: JudoClient, entry):
         super().__init__(coordinator, client, entry, "learn_start")
     async def async_press(self):

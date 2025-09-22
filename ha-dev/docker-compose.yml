@@ -10,7 +10,7 @@ services:
     volumes:
       - ./config:/config
       # <— Pfad zu deinem Repo anpassen!>
-      - ../homeassistant-judo-leakguard/custom_components/judo_leakguard:/config/custom_components/judo_leakguard:rw
+      - ../custom_components/judo_leakguard:/config/custom_components/judo_leakguard:rw
     command: >
       python -m debugpy --listen 0.0.0.0:5678
       -m homeassistant --config /config --debug

@@ -29,6 +29,7 @@ coverage.xml
 
 # Home-Assistant Dev-Setup
 ha-dev/config/home-assistant.log
+ha-dev/config/home-assistant.log*
 ha-dev/config/home-assistant_v2.db
 ha-dev/config/home-assistant_v2.db-shm
 ha-dev/config/home-assistant_v2.db-wal
@@ -36,6 +37,7 @@ ha-dev/config/.storage/
 ha-dev/config/.cloud/
 ha-dev/config/*.yaml.bak
 ha-dev/config/*.yaml.backup
+ha-dev/config/custom_components/*
 
 # Lokale Integration
 custom_components/judo_leakguard/__pycache__/
