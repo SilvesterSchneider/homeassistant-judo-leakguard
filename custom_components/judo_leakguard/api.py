@@ -27,13 +27,24 @@ class JudoConnectionError(JudoApiError):
 class JudoClient:
     """Low-level REST client for the ZEWA i-SAFE / Judo Leakguard device."""
 
-    def __init__(self, session: aiohttp.ClientSession, base_url: str, verify_ssl: bool = True, request_timeout: float = 5.0) -> None:
+    def __init__(
+        self,
+        session: aiohttp.ClientSession,
+        base_url: str,
+        verify_ssl: bool = True,
+        request_timeout: float = 5.0,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        send_as_query: bool = False,
+    ) -> None:
         if base_url.endswith("/"):
             base_url = base_url[:-1]
         self._session = session
         self._base_url = base_url
         self._verify_ssl = verify_ssl
         self._timeout = aiohttp.ClientTimeout(total=request_timeout)
+        self._auth = aiohttp.BasicAuth(username or "", password or "") if username or password else None
+        self._send_as_query = send_as_query
 
     def _url(self, path: str) -> str:
         if not path.startswith("/"):
@@ -41,10 +52,15 @@ class JudoClient:
         return f"{self._base_url}{path}"
 
     async def _fetch_json(self, path: str) -> Optional[Dict[str, Any]]:
-        """Fetch JSON; gibt None bei 404/Fehlern zurück, ohne Exceptions nach außen zu werfen."""
+        """Fetch JSON from the device. Returns None for 404 responses."""
         url = self._url(path)
         try:
-            async with self._session.get(url, timeout=self._timeout, ssl=self._verify_ssl) as resp:
+            async with self._session.get(
+                url,
+                timeout=self._timeout,
+                ssl=self._verify_ssl,
+                auth=self._auth,
+            ) as resp:
                 if resp.status == 404:
                     return None
                 if resp.status in (401, 403):
