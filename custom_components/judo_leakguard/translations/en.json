@@ -99,9 +99,9 @@
         "name": "Vacation type",
         "state": {
           "off": "Off",
-          "U1": "U1",
-          "U2": "U2",
-          "U3": "U3"
+          "u1": "U1",
+          "u2": "U2",
+          "u3": "U3"
         }
       },
       "microleak_mode_set": {
