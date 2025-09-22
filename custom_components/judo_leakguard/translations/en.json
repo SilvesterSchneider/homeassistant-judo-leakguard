@@ -24,116 +24,104 @@
   },
   "entity": {
     "sensor": {
-      "judo_leakguard": {
-        "pressure": {
-          "name": "Pressure"
-        },
-        "water_flow": {
-          "name": "Water flow"
-        },
-        "total_water": {
-          "name": "Total water"
-        },
-        "total_water_liters": {
-          "name": "Total water (L)"
-        },
-        "device_temperature": {
-          "name": "Device temperature"
-        },
-        "battery": {
-          "name": "Battery"
-        },
-        "last_update_age": {
-          "name": "Last update age"
-        },
-        "sleep_duration": {
-          "name": "Sleep duration"
-        },
-        "absence_flow_limit": {
-          "name": "Absence flow limit"
-        },
-        "absence_volume_limit": {
-          "name": "Absence volume limit"
-        },
-        "absence_duration_limit": {
-          "name": "Absence duration limit"
-        },
-        "learning_remaining_water": {
-          "name": "Learning remaining water"
-        },
-        "installation_date": {
-          "name": "Installation date"
-        }
+      "pressure": {
+        "name": "Pressure"
+      },
+      "water_flow": {
+        "name": "Water flow"
+      },
+      "total_water": {
+        "name": "Total water"
+      },
+      "total_water_liters": {
+        "name": "Total water (L)"
+      },
+      "device_temperature": {
+        "name": "Device temperature"
+      },
+      "battery": {
+        "name": "Battery"
+      },
+      "last_update_age": {
+        "name": "Last update age"
+      },
+      "sleep_duration": {
+        "name": "Sleep duration"
+      },
+      "absence_flow_limit": {
+        "name": "Absence flow limit"
+      },
+      "absence_volume_limit": {
+        "name": "Absence volume limit"
+      },
+      "absence_duration_limit": {
+        "name": "Absence duration limit"
+      },
+      "learning_remaining_water": {
+        "name": "Learning remaining water"
+      },
+      "installation_date": {
+        "name": "Installation date"
       }
     },
     "binary_sensor": {
-      "judo_leakguard": {
-        "learn_active": {
-          "name": "Learning active"
-        }
+      "learn_active": {
+        "name": "Learning active"
       }
     },
     "button": {
-      "judo_leakguard": {
-        "reset_alarms": {
-          "name": "Reset alarms"
-        },
-        "start_microleak_test": {
-          "name": "Start micro-leak test"
-        },
-        "start_learning": {
-          "name": "Start learning"
-        }
+      "reset_alarms": {
+        "name": "Reset alarms"
+      },
+      "start_microleak_test": {
+        "name": "Start micro-leak test"
+      },
+      "start_learning": {
+        "name": "Start learning"
       }
     },
     "number": {
-      "judo_leakguard": {
-        "sleep_hours": {
-          "name": "Sleep hours"
-        },
-        "absence_flow_limit": {
-          "name": "Absence flow limit"
-        },
-        "absence_volume_limit": {
-          "name": "Absence volume limit"
-        },
-        "absence_duration_limit": {
-          "name": "Absence duration limit"
-        }
+      "sleep_hours": {
+        "name": "Sleep hours"
+      },
+      "absence_flow_limit": {
+        "name": "Absence flow limit"
+      },
+      "absence_volume_limit": {
+        "name": "Absence volume limit"
+      },
+      "absence_duration_limit": {
+        "name": "Absence duration limit"
       }
     },
     "select": {
-      "judo_leakguard": {
-        "vacation_type": {
-          "name": "Vacation type",
-          "state": {
-            "off": "Off",
-            "U1": "U1",
-            "U2": "U2",
-            "U3": "U3"
-          }
-        },
-        "microleak_mode_set": {
-          "name": "Micro-leak mode (set)",
-          "state": {
-            "off": "Off",
-            "notify": "Notify",
-            "notify_close": "Notify and close valve"
-          }
+      "vacation_type": {
+        "name": "Vacation type",
+        "state": {
+          "off": "Off",
+          "U1": "U1",
+          "U2": "U2",
+          "U3": "U3"
+        }
+      },
+      "microleak_mode_set": {
+        "name": "Micro-leak mode (set)",
+        "state": {
+          "off": "Off",
+          "notify": "Notify",
+          "notify_close": "Notify and close valve"
         }
       }
     },
     "switch": {
-      "judo_leakguard": {
-        "valve_open": {
-          "name": "Valve open"
-        },
-        "sleep_mode": {
-          "name": "Sleep mode"
-        },
-        "vacation_mode": {
-          "name": "Vacation mode"
-        }
+      "valve_open": {
+        "name": "Valve open"
+      },
+      "sleep_mode": {
+        "name": "Sleep mode"
+      },
+      "vacation_mode": {
+        "name": "Vacation mode"
       }
     }
   },
