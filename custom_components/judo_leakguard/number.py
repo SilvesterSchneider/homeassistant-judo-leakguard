@@ -30,7 +30,7 @@ class _Base(CoordinatorEntity, NumberEntity):
         self._attr_unique_id = build_unique_id(device_data, key)
 
 class SleepHours(_Base):
-    _attr_name = "Sleep hours"
+    _attr_translation_key = "sleep_hours"
     _attr_native_min_value = 1
     _attr_native_max_value = 10
     _attr_native_step = 1
@@ -44,7 +44,7 @@ class SleepHours(_Base):
         await self.coordinator.async_request_refresh()
 
 class FlowLimit(_Base):
-    _attr_name = "Absence flow limit"
+    _attr_translation_key = "absence_flow_limit"
     _attr_native_min_value = 0
     _attr_native_max_value = 65535
     _attr_native_step = 10
@@ -61,7 +61,7 @@ class FlowLimit(_Base):
         await self.coordinator.async_request_refresh()
 
 class VolumeLimit(_Base):
-    _attr_name = "Absence volume limit"
+    _attr_translation_key = "absence_volume_limit"
     _attr_native_min_value = 0
     _attr_native_max_value = 65535
     _attr_native_step = 1
@@ -78,7 +78,7 @@ class VolumeLimit(_Base):
         await self.coordinator.async_request_refresh()
 
 class DurationLimit(_Base):
-    _attr_name = "Absence duration limit"
+    _attr_translation_key = "absence_duration_limit"
     _attr_native_min_value = 0
     _attr_native_max_value = 65535
     _attr_native_step = 1

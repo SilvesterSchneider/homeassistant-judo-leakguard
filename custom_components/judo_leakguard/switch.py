@@ -42,7 +42,7 @@ class _BaseSwitch(CoordinatorEntity, SwitchEntity):
         return self._state
 
 class ValveSwitch(_BaseSwitch):
-    _attr_name = "Valve open"
+    _attr_translation_key = "valve_open"
     def __init__(self, coordinator, client: JudoClient, entry):
         super().__init__(coordinator, client, entry, "valve")
     async def async_turn_on(self, **kwargs):
@@ -57,7 +57,7 @@ class ValveSwitch(_BaseSwitch):
         await self.coordinator.async_request_refresh()
 
 class SleepSwitch(_BaseSwitch):
-    _attr_name = "Sleep mode"
+    _attr_translation_key = "sleep_mode"
     def __init__(self, coordinator, client: JudoClient, entry):
         super().__init__(coordinator, client, entry, "sleep_mode", state_key="sleep_active")
     async def async_turn_on(self, **kwargs):
@@ -72,7 +72,7 @@ class SleepSwitch(_BaseSwitch):
         await self.coordinator.async_request_refresh()
 
 class VacationSwitch(_BaseSwitch):
-    _attr_name = "Vacation mode"
+    _attr_translation_key = "vacation_mode"
     def __init__(self, coordinator, client: JudoClient, entry):
         super().__init__(coordinator, client, entry, "vacation_mode", state_key="vacation_active")
     async def async_turn_on(self, **kwargs):

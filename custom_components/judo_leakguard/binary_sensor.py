@@ -26,7 +26,7 @@ class _Base(CoordinatorEntity, BinarySensorEntity):
         await self.coordinator.async_request_refresh()
 
 class LearnActive(_Base):
-    _attr_name = "Learning active"
+    _attr_translation_key = "learn_active"
 
     def __init__(self, coordinator, entry):
         super().__init__(coordinator, entry)

@@ -22,7 +22,7 @@ _LOGGER = logging.getLogger(__name__)
 
 _DEFAULT_USERNAME = "admin"
 _DEFAULT_PASSWORD = "Connectivity"
-_PORT_SENTINEL = 0
+_PORT_SENTINEL = 80
 
 
 def _schema(defaults: Optional[Dict[str, Any]] = None) -> vol.Schema:

@@ -1,0 +1,147 @@
+{
+  "title": "JUDO Leakguard",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Verbindung zur JUDO Leakguard herstellen",
+        "description": "Bitte gib die Verbindungsdaten für dein JUDO Leakguard-Gerät ein.",
+        "data": {
+          "host": "Host",
+          "protocol": "Protokoll",
+          "port": "Port",
+          "username": "Benutzername",
+          "password": "Passwort",
+          "verify_ssl": "SSL-Zertifikate überprüfen",
+          "send_data_as_query": "Befehle als Query-Parameter senden"
+        }
+      }
+    },
+    "error": {
+      "invalid_host": "Ungültiger Hostname oder ungültige IP-Adresse.",
+      "invalid_auth": "Ungültiger Benutzername oder ungültiges Passwort.",
+      "cannot_connect": "Verbindung zum Gerät fehlgeschlagen. Bitte Einstellungen prüfen und erneut versuchen."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "judo_leakguard": {
+        "pressure": {
+          "name": "Druck"
+        },
+        "water_flow": {
+          "name": "Wasserdurchfluss"
+        },
+        "total_water": {
+          "name": "Gesamtwasser"
+        },
+        "total_water_liters": {
+          "name": "Gesamtwasser (L)"
+        },
+        "device_temperature": {
+          "name": "Gerätetemperatur"
+        },
+        "battery": {
+          "name": "Batterie"
+        },
+        "last_update_age": {
+          "name": "Alter der letzten Aktualisierung"
+        },
+        "sleep_duration": {
+          "name": "Ruhedauer"
+        },
+        "absence_flow_limit": {
+          "name": "Abwesenheits-Durchflussgrenze"
+        },
+        "absence_volume_limit": {
+          "name": "Abwesenheits-Volumengrenze"
+        },
+        "absence_duration_limit": {
+          "name": "Abwesenheits-Dauergrenze"
+        },
+        "learning_remaining_water": {
+          "name": "Verbleibende Lernwassermenge"
+        },
+        "installation_date": {
+          "name": "Installationsdatum"
+        }
+      }
+    },
+    "binary_sensor": {
+      "judo_leakguard": {
+        "learn_active": {
+          "name": "Lernen aktiv"
+        }
+      }
+    },
+    "button": {
+      "judo_leakguard": {
+        "reset_alarms": {
+          "name": "Alarme zurücksetzen"
+        },
+        "start_microleak_test": {
+          "name": "Mikroleck-Test starten"
+        },
+        "start_learning": {
+          "name": "Lernmodus starten"
+        }
+      }
+    },
+    "number": {
+      "judo_leakguard": {
+        "sleep_hours": {
+          "name": "Ruhedauer (Stunden)"
+        },
+        "absence_flow_limit": {
+          "name": "Abwesenheits-Durchflussgrenze"
+        },
+        "absence_volume_limit": {
+          "name": "Abwesenheits-Volumengrenze"
+        },
+        "absence_duration_limit": {
+          "name": "Abwesenheits-Dauergrenze"
+        }
+      }
+    },
+    "select": {
+      "judo_leakguard": {
+        "vacation_type": {
+          "name": "Urlaubsmodus",
+          "state": {
+            "off": "Aus",
+            "U1": "U1",
+            "U2": "U2",
+            "U3": "U3"
+          }
+        },
+        "microleak_mode_set": {
+          "name": "Mikroleck-Modus (gesetzt)",
+          "state": {
+            "off": "Aus",
+            "notify": "Nur melden",
+            "notify_close": "Melden und schließen"
+          }
+        }
+      }
+    },
+    "switch": {
+      "judo_leakguard": {
+        "valve_open": {
+          "name": "Ventil geöffnet"
+        },
+        "sleep_mode": {
+          "name": "Ruhemodus"
+        },
+        "vacation_mode": {
+          "name": "Urlaubsmodus"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Optionen"
+      }
+    }
+  }
+}
