@@ -11,16 +11,39 @@ from homeassistant.util.dt import utcnow
 _LOGGER = logging.getLogger(__name__)
 
 
+class JudoApiError(Exception):
+    """Base exception for Judo API errors."""
+
+
+class JudoAuthenticationError(JudoApiError):
+    """Raised when authentication fails."""
+
+
+class JudoConnectionError(JudoApiError):
+    """Raised when the device cannot be reached."""
+
+
 class JudoLeakguardApi:
     """Sehr einfacher API-Client für die ZEWA i-SAFE / JUDO Leakguard Box."""
 
-    def __init__(self, session: aiohttp.ClientSession, base_url: str, verify_ssl: bool = True, request_timeout: float = 5.0) -> None:
+    def __init__(
+        self,
+        session: aiohttp.ClientSession,
+        base_url: str,
+        verify_ssl: bool = True,
+        request_timeout: float = 5.0,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        send_as_query: bool = False,
+    ) -> None:
         if base_url.endswith("/"):
             base_url = base_url[:-1]
         self._session = session
         self._base_url = base_url
         self._verify_ssl = verify_ssl
         self._timeout = aiohttp.ClientTimeout(total=request_timeout)
+        self._auth = aiohttp.BasicAuth(username or "", password or "") if username or password else None
+        self._send_as_query = send_as_query
 
         # Kandidaten-Endpunkte; wir probieren mehrere und mergen die Ergebnisse
         self._status_candidates = [
@@ -51,19 +74,41 @@ class JudoLeakguardApi:
         return f"{self._base_url}{path}"
 
     async def _fetch_json(self, path: str) -> Optional[Dict[str, Any]]:
-        """Fetch JSON; gibt None bei 404/Fehlern zurück, ohne Exceptions nach außen zu werfen."""
+        """Fetch JSON from the device. Returns None for 404 responses."""
         url = self._url(path)
         try:
-            async with self._session.get(url, timeout=self._timeout, ssl=self._verify_ssl) as resp:
+            async with self._session.get(
+                url,
+                timeout=self._timeout,
+                ssl=self._verify_ssl,
+                auth=self._auth,
+            ) as resp:
                 if resp.status == 404:
                     return None
+                if resp.status in (401, 403):
+                    raise JudoAuthenticationError(f"Authentication failed for {url} (status={resp.status})")
                 resp.raise_for_status()
                 text = await resp.text()
                 if not text:
                     return None
                 return json.loads(text)
-        except asyncio.TimeoutError:
-            _LOGGER.debug("Timeout GET %s", url)
+        except JudoAuthenticationError:
+            raise
+        except asyncio.TimeoutError as exc:
+            raise JudoConnectionError(f"Timeout while requesting {url}") from exc
+        except aiohttp.ClientConnectorError as exc:
+            raise JudoConnectionError(f"Cannot connect to {url}: {exc}") from exc
+        except aiohttp.ClientResponseError as exc:
+            if exc.status == 404:
+                return None
+            if exc.status in (401, 403):
+                raise JudoAuthenticationError(f"Authentication failed for {url} (status={exc.status})") from exc
+            _LOGGER.debug("Unexpected response from %s: %s", url, exc)
+            return None
+        except aiohttp.ClientError as exc:
+            raise JudoConnectionError(f"Client error while requesting {url}: {exc}") from exc
+        except json.JSONDecodeError as exc:
+            _LOGGER.debug("Invalid JSON from %s: %s", url, exc)
             return None
         except Exception as exc:
             _LOGGER.debug("Fetch failed for %s: %s", url, exc)
