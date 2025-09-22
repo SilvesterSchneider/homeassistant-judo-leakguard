@@ -15,9 +15,10 @@
 
 ## Entities (Auszug)
 
-- Switches: Valve (5100/5200), Sleep (5400/5500), Vacation (5700/5800)
-- Buttons: Reset alarms (6300), Micro-leak test (5C00), Start learning (5D00)
-- Numbers/Selects: Sleep hours (53/66), Absence flow/volume/duration (50/5E), Vacation type (56), Micro-leak mode (5B/65)
-- Sensors: Total water (2800), Firmware (0100), Device time (5900), Sleep duration (6600), Learning remaining (6400), Micro-leak mode (6500), Absence limits (5E00)
+- **Switches**: Ventil öffnen/schließen (5100/5200), Sleep-Modus (5400/5500), Urlaubsmodus (5700/5800)
+- **Buttons**: Meldungen zurücksetzen (6300), Mikroleckageprüfung starten (5C00), Lernmodus starten (5D00)
+- **Numbers**: Sleep-Dauer (53/66), Abwesenheits-Grenzwerte für Durchfluss/Volumen/Zeit (5F/5E)
+- **Selects**: Urlaubsmodus-Typ (56), Mikro-Leckage-Betrieb (5B/65)
+- **Sensoren**: Leitungsdruck, Durchfluss, Geräte-Temperatur, Batteriestand, Gesamtverbrauch (2800), Gerätezeit (5900), Lernmodus-Status & Restwassermenge (6400), Abwesenheitslimits (5E00), Installationsdatum (0E00) uvm.
 
 > Achtung: Ventil-Steuerung kann die Wasserzufuhr schließen. Automationen mit Bedacht.

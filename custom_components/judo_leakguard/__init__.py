@@ -14,7 +14,14 @@ from .const import DOMAIN, DEFAULT_SCAN_INTERVAL, CONF_PORT, CONF_PROTOCOL, CONF
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list[Platform] = [Platform.SENSOR]  # Weitere Plattformen später (BINARY_SENSOR etc.)
+PLATFORMS: list[Platform] = [
+    Platform.SENSOR,
+    Platform.BINARY_SENSOR,
+    Platform.SWITCH,
+    Platform.BUTTON,
+    Platform.NUMBER,
+    Platform.SELECT,
+]
 
 
 class JudoLeakguardCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
@@ -63,6 +70,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = {
         "coordinator": coordinator,
         "api": api,
+        "client": api,
         "base_url": base_url,
     }
 

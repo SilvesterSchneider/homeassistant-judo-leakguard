@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Iterable, Optional
+from typing import Any, Optional
 
 import logging
 
 from homeassistant.components.sensor import (
+    SensorDeviceClass,
     SensorEntity,
     SensorEntityDescription,
     SensorStateClass,
@@ -15,38 +16,19 @@ from homeassistant.const import (
     UnitOfVolume,
     UnitOfTemperature,
     UnitOfTime,
+    UnitOfVolumeFlowRate,
     PERCENTAGE,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.config_entries import ConfigEntry
 
+from .helpers import build_device_info, build_unique_id, first_present
+
 _LOGGER = logging.getLogger(__name__)
 
 DOMAIN = "judo_leakguard"
-
-
-def _get_nested(data: dict[str, Any], path: str, default: Any = None) -> Any:
-    try:
-        cur: Any = data
-        for part in path.split("."):
-            if isinstance(cur, dict) and part in cur:
-                cur = cur[part]
-            else:
-                return default
-        return cur
-    except Exception:
-        return default
-
-
-def _first_present(data: dict[str, Any], candidates: Iterable[str]) -> Any:
-    for path in candidates:
-        val = _get_nested(data, path, default=None)
-        if val is not None:
-            return val
-    return None
 
 
 @dataclass(frozen=True)
@@ -78,6 +60,13 @@ SENSOR_DESCRIPTIONS: tuple[JudoSensorEntityDescription, ...] = (
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
     JudoSensorEntityDescription(
+        key="total_water_l",
+        name="Total Water (L)",
+        paths=("total_water_l",),
+        native_unit_of_measurement=UnitOfVolume.LITERS,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+    ),
+    JudoSensorEntityDescription(
         key="temperature_c",
         name="Device Temperature",
         paths=("temperature_c", "temp_c", "sensors.temperature_c"),
@@ -98,6 +87,47 @@ SENSOR_DESCRIPTIONS: tuple[JudoSensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfTime.SECONDS,
         state_class=SensorStateClass.MEASUREMENT,
     ),
+    JudoSensorEntityDescription(
+        key="sleep_hours",
+        name="Sleep Duration",
+        paths=("sleep_hours",),
+        native_unit_of_measurement=UnitOfTime.HOURS,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    JudoSensorEntityDescription(
+        key="absence_flow_l_h",
+        name="Absence Flow Limit",
+        paths=("absence_flow_l_h",),
+        native_unit_of_measurement=UnitOfVolumeFlowRate.LITERS_PER_HOUR,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    JudoSensorEntityDescription(
+        key="absence_volume_l",
+        name="Absence Volume Limit",
+        paths=("absence_volume_l",),
+        native_unit_of_measurement=UnitOfVolume.LITERS,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    JudoSensorEntityDescription(
+        key="absence_duration_min",
+        name="Absence Duration Limit",
+        paths=("absence_duration_min",),
+        native_unit_of_measurement=UnitOfTime.MINUTES,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    JudoSensorEntityDescription(
+        key="learn_remaining_l",
+        name="Learning Remaining Water",
+        paths=("learn_remaining_l",),
+        native_unit_of_measurement=UnitOfVolume.LITERS,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    JudoSensorEntityDescription(
+        key="installation_datetime",
+        name="Installation Date",
+        paths=("installation_datetime",),
+        device_class=SensorDeviceClass.TIMESTAMP,
+    ),
 )
 
 
@@ -114,21 +144,10 @@ class JudoSensor(CoordinatorEntity, SensorEntity):
         self.entity_description = description
         self._entry = entry
 
-        serial = _first_present(self.coordinator.data or {}, ("serial", "device.serial", "meta.serial")) or "unknown"
-        model = _first_present(self.coordinator.data or {}, ("model", "device.model", "meta.model")) or "ZEWA i-SAFE"
-        swver = _first_present(self.coordinator.data or {}, ("firmware", "sw_version", "meta.firmware")) or None
-        manufacturer = _first_present(self.coordinator.data or {}, ("manufacturer", "brand", "meta.manufacturer")) or "JUDO"
+        device_data = self.coordinator.data or {}
 
-        self._attr_unique_id = f"{serial}_{description.key}"
-
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, serial)},
-            manufacturer=manufacturer,
-            model=model,
-            sw_version=str(swver) if swver is not None else None,
-            name="Judo Leakguard",
-            configuration_url=None,
-        )
+        self._attr_unique_id = build_unique_id(device_data, description.key)
+        self._attr_device_info = build_device_info(device_data)
 
     @property
     def available(self) -> bool:
@@ -139,7 +158,7 @@ class JudoSensor(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self) -> Any:
         data = self.coordinator.data or {}
-        value = _first_present(data, self.entity_description.paths or (self.entity_description.key,))
+        value = first_present(data, self.entity_description.paths or (self.entity_description.key,))
         return value
 
 

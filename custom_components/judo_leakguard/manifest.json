@@ -1,7 +1,8 @@
 {
   "domain": "judo_leakguard",
   "name": "Judo Leakguard (ZEWA i-SAFE)",
-  "version": "0.2.3",
+  "version": "0.3.0",
+  "config_flow": true,
   "codeowners": ["@SilvesterSchneider"],
   "iot_class": "local_polling",
   "integration_type": "device",
