@@ -11,5 +11,5 @@
   "issue_tracker": "https://github.com/SilvesterSchneider/homeassistant-judo-leakguard/issues",
   "loggers": ["custom_components.judo_leakguard"],
   "requirements": [],
-  "version": "0.4.0"
+  "version": "0.5.0"
 }
