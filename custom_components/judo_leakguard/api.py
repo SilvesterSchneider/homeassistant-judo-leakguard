@@ -1,162 +1,224 @@
 from __future__ import annotations
+
+import asyncio
 import json
 import logging
 from typing import Any, Dict, Optional
 
 import aiohttp
+from homeassistant.util.dt import utcnow
 
 _LOGGER = logging.getLogger(__name__)
 
-class JudoClient:
-    """Async client for JUDO Connectivity REST API (ZEWA i-SAFE only)."""
 
-    def __init__(
-        self,
-        host: str,
-        username: str,
-        password: str,
-        use_https: bool = False,
-        verify_ssl: bool = True,
-        send_data_as_query: bool = False,
-        session: Optional[aiohttp.ClientSession] = None,
-    ) -> None:
-        self._host = host
-        self._username = username
-        self._password = password
-        self._https = use_https
-        self._verify_ssl = verify_ssl
-        self._send_data_as_query = send_data_as_query
+class JudoLeakguardApi:
+    """Sehr einfacher API-Client für die ZEWA i-SAFE / JUDO Leakguard Box."""
+
+    def __init__(self, session: aiohttp.ClientSession, base_url: str, verify_ssl: bool = True, request_timeout: float = 5.0) -> None:
+        if base_url.endswith("/"):
+            base_url = base_url[:-1]
         self._session = session
+        self._base_url = base_url
+        self._verify_ssl = verify_ssl
+        self._timeout = aiohttp.ClientTimeout(total=request_timeout)
 
-    @property
-    def base(self) -> str:
-        return f"{'https' if self._https else 'http'}://{self._host}"
+        # Kandidaten-Endpunkte; wir probieren mehrere und mergen die Ergebnisse
+        self._status_candidates = [
+            "/api/status",
+            "/api/live",
+            "/api/values",
+            "/status",
+            "/live",
+            "/values",
+            "/zewa/status",
+            "/zewa/live",
+            "/judo/leakguard/status",
+        ]
+        self._meta_candidates = [
+            "/api/device",
+            "/device",
+            "/api/info",
+            "/info",
+        ]
+        self._counter_candidates = [
+            "/api/counters",
+            "/counters",
+        ]
 
-    async def _request(self, func_hex: str, payload_hex: str | None = None) -> Dict[str, Any]:
-        # Some firmware accepts GET with payload appended; otherwise POST with form field data=...
-        url = f"{self.base}/api/rest/{func_hex}{'' if payload_hex is None else payload_hex}"
-        close = False
-        session = self._session
-        if session is None:
-            session = aiohttp.ClientSession()
-            close = True
+    def _url(self, path: str) -> str:
+        if not path.startswith("/"):
+            path = "/" + path
+        return f"{self._base_url}{path}"
+
+    async def _fetch_json(self, path: str) -> Optional[Dict[str, Any]]:
+        """Fetch JSON; gibt None bei 404/Fehlern zurück, ohne Exceptions nach außen zu werfen."""
+        url = self._url(path)
         try:
-            auth = aiohttp.BasicAuth(self._username, self._password)
-            headers = {"Accept": "application/json"}
-            if self._send_data_as_query or payload_hex is None:
-                async with session.get(url, auth=auth, ssl=self._verify_ssl, headers=headers) as resp:
-                    text = await resp.text()
-                    _LOGGER.debug("GET %s -> %s %s", url, resp.status, text)
-                    resp.raise_for_status()
-                    return _parse_json(text)
+            async with self._session.get(url, timeout=self._timeout, ssl=self._verify_ssl) as resp:
+                if resp.status == 404:
+                    return None
+                resp.raise_for_status()
+                text = await resp.text()
+                if not text:
+                    return None
+                return json.loads(text)
+        except asyncio.TimeoutError:
+            _LOGGER.debug("Timeout GET %s", url)
+            return None
+        except Exception as exc:
+            _LOGGER.debug("Fetch failed for %s: %s", url, exc)
+            return None
+
+    @staticmethod
+    def _deep_merge(left: Dict[str, Any], right: Dict[str, Any]) -> Dict[str, Any]:
+        """Shallow-merge reicht hier; bei dict/dict könnten wir rekursiv mergen."""
+        merged = dict(left)
+        for k, v in (right or {}).items():
+            # Wenn beide dicts sind, leichtes rekursives Merge
+            if isinstance(v, dict) and isinstance(merged.get(k), dict):
+                merged[k] = JudoLeakguardApi._deep_merge(merged[k], v)
             else:
-                data = {"data": payload_hex or ""}
-                async with session.post(f"{self.base}/api/rest/{func_hex}", data=data, auth=auth, ssl=self._verify_ssl, headers=headers) as resp:
-                    text = await resp.text()
-                    _LOGGER.debug("POST %s data=%s -> %s %s", func_hex, payload_hex, resp.status, text)
-                    resp.raise_for_status()
-                    return _parse_json(text)
-        finally:
-            if close:
-                await session.close()
+                merged[k] = v
+        return merged
 
-    # ------------ High-level helpers ------------
-    async def get_device_type(self) -> int:
-        d = await self._request("FF00")
-        return int(_extract(d), 16)
+    def _normalize(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Heuristische Normalisierung, damit die Sensoren etwas finden."""
+        if not data:
+            return data
 
-    async def get_serial(self) -> str:
-        d = await self._request("0600")
-        return _extract(d).lower()
+        norm = dict(data)
 
-    async def get_fw(self) -> str:
-        d = await self._request("0100")
-        s = _extract(d)
-        major = int(s[0:2], 16)
-        minor = int(s[2:4], 16)
-        patch = int(s[4:6], 16)
-        return f"{major}.{minor}.{patch}"
+        # Druck (bar)
+        pressure = (
+            norm.get("pressure_bar")
+            or norm.get("pressure")
+            or norm.get("sensors", {}).get("pressure_bar")
+            or norm.get("live", {}).get("pressure_bar")
+        )
+        if pressure is not None:
+            # Wenn plausibel (< 20 bar), direkt als bar
+            try:
+                pressure_f = float(pressure)
+                if 0 <= pressure_f < 20:
+                    norm["pressure_bar"] = pressure_f
+            except Exception:
+                pass
 
-    async def get_total_liters(self) -> Optional[int]:
+        # Durchfluss (L/min)
+        flow = (
+            norm.get("water_flow_l_min")
+            or norm.get("flow_l_min")
+            or norm.get("flow")
+            or norm.get("sensors", {}).get("flow")
+            or norm.get("live", {}).get("flow")
+        )
+        if flow is not None:
+            try:
+                flow_f = float(flow)
+                if flow_f >= 0:
+                    norm["water_flow_l_min"] = flow_f
+            except Exception:
+                pass
+
+        # Temperatur (°C)
+        temp = (
+            norm.get("temperature_c")
+            or norm.get("temp_c")
+            or norm.get("temperature")
+            or norm.get("sensors", {}).get("temperature_c")
+        )
+        if temp is not None:
+            try:
+                norm["temperature_c"] = float(temp)
+            except Exception:
+                pass
+
+        # Total Water m3 (falls in Litern vorhanden)
+        total_m3 = norm.get("total_water_m3") or norm.get("counters", {}).get("total_water_m3")
+        if total_m3 is None:
+            total_l = norm.get("total_water_l") or norm.get("counters", {}).get("total_water_l")
+            try:
+                if total_l is not None:
+                    norm["total_water_m3"] = float(total_l) / 1000.0
+            except Exception:
+                pass
+
+        # Akku %
+        bat = norm.get("battery_percent") or norm.get("battery") or norm.get("status", {}).get("battery_percent")
+        if bat is not None:
+            try:
+                bat_f = float(bat)
+                if 0 <= bat_f <= 100:
+                    norm["battery_percent"] = bat_f
+            except Exception:
+                pass
+
+        # Meta
+        manufacturer = norm.get("manufacturer") or norm.get("brand") or norm.get("meta", {}).get("manufacturer")
+        if manufacturer:
+            norm["manufacturer"] = manufacturer
+
+        model = norm.get("model") or norm.get("device", {}).get("model") or norm.get("meta", {}).get("model")
+        if model:
+            norm["model"] = model
+
+        serial = norm.get("serial") or norm.get("device", {}).get("serial") or norm.get("meta", {}).get("serial")
+        if serial:
+            norm["serial"] = serial
+
+        fw = norm.get("firmware") or norm.get("sw_version") or norm.get("meta", {}).get("firmware")
+        if fw:
+            norm["firmware"] = fw
+
+        # Letztes Update (Sekunden seit)
+        # Manche APIs geben timestamps (epoch ms/sec) oder ISO-Strings; wir rechnen age_seconds
+        ts = norm.get("last_update") or norm.get("meta", {}).get("last_update") or norm.get("timestamp")
+        age = None
         try:
-            d = await self._request("2800")
-            return _u32_le(_extract(d))
+            now = utcnow().timestamp()
+            if isinstance(ts, (int, float)) and ts > 1e12:
+                age = now - (ts / 1000.0)  # epoch ms
+            elif isinstance(ts, (int, float)) and ts > 0:
+                age = now - ts  # epoch sec
+            elif isinstance(ts, str):
+                # Try ISO 8601
+                from datetime import datetime
+                dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+                age = now - dt.timestamp()
         except Exception:
-            return None
+            age = None
 
-    async def read_absence_limits(self) -> tuple[int,int,int]:
-        s = _extract(await self._request("5E00"))
-        return int(s[0:4],16), int(s[4:8],16), int(s[8:12],16)
+        if age is not None and age >= 0:
+            norm["last_update_seconds"] = round(age)
 
-    async def read_sleep_duration(self) -> Optional[int]:
-        try:
-            s = _extract(await self._request("6600"))
-            return int(s, 16)
-        except Exception:
-            return None
+        return norm
 
-    async def read_learn_status(self) -> tuple[bool, Optional[int]]:
-        s = _extract(await self._request("6400"))
-        active = int(s[0:2], 16) == 1
-        remaining = int(s[2:6], 16)
-        return active, remaining
+    async def fetch_all(self) -> Dict[str, Any]:
+        """Holt Daten von mehreren Kandidaten-Endpunkten und merged sie."""
+        merged: Dict[str, Any] = {}
 
-    async def read_microleak_mode(self) -> Optional[int]:
-        try:
-            s = _extract(await self._request("6500"))
-            return int(s, 16)
-        except Exception:
-            return None
+        # Meta zuerst (falls vorhanden)
+        for ep in self._meta_candidates:
+            js = await self._fetch_json(ep)
+            if js:
+                merged = self._deep_merge(merged, {"meta": js})
 
-    async def read_datetime(self) -> Optional[str]:
-        try:
-            s = _extract(await self._request("5900"))
-            dd, mm, yy, hh, mi, ss = [int(s[i:i+2], 16) for i in range(0, 12, 2)]
-            return f"20{yy:02d}-{mm:02d}-{dd:02d}T{hh:02d}:{mi:02d}:{ss:02d}"
-        except Exception:
-            return None
+        # Status / Live
+        for ep in self._status_candidates:
+            js = await self._fetch_json(ep)
+            if js:
+                merged = self._deep_merge(merged, js)
 
-    # Writes / actions
-    async def action_no_payload(self, func: str) -> None:
-        await self._request(func)
+        # Counter
+        for ep in self._counter_candidates:
+            js = await self._fetch_json(ep)
+            if js:
+                merged = self._deep_merge(merged, {"counters": js})
 
-    async def write_leak_settings(self, vac_mode:int, flow_lph:int, volume_l:int, minutes:int) -> None:
-        payload = (f"{vac_mode & 0xFF:02x}"
-                   f"{flow_lph & 0xFFFF:04x}"
-                   f"{volume_l & 0xFFFF:04x}"
-                   f"{minutes & 0xFFFF:04x}").upper()
-        await self._request("50", payload)
+        if not merged:
+            _LOGGER.debug("No payload collected from any endpoint at %s", self._base_url)
+            return {}
 
-    async def write_sleep_duration(self, hours:int) -> None:
-        await self._request("53", f"{hours & 0xFF:02x}".upper())
-
-    async def write_vacation_type(self, vac_mode:int) -> None:
-        await self._request("56", f"{vac_mode & 0xFF:02x}".upper())
-
-    async def write_microleak_mode(self, mode:int) -> None:
-        await self._request("5B", f"{mode & 0xFF:02x}".upper())
-
-def _parse_json(text:str):
-    try:
-        obj = json.loads(text)
-        if isinstance(obj, dict): return obj
-        if isinstance(obj, list) and obj and isinstance(obj[0], dict): return obj[0]
-    except Exception:
-        pass
-    key = '"data"'
-    i = text.find(key)
-    if i != -1:
-        j = text.find('"', i + len(key))
-        k = text.find('"', j + 1)
-        if j != -1 and k != -1:
-            return {"data": text[j+1:k]}
-    raise ValueError(f"Unexpected API response: {text!r}")
-
-def _extract(d):
-    s = d.get("data", "")
-    return s.strip().strip('"') if isinstance(s, str) else str(s)
-
-def _u32_le(hexstr:str) -> int:
-    hexstr = hexstr.strip().strip('"').zfill(8)
-    b0,b1,b2,b3 = hexstr[0:2],hexstr[2:4],hexstr[4:6],hexstr[6:8]
-    return int(b3+b2+b1+b0, 16)
+        normalized = self._normalize(merged)
+        _LOGGER.debug("Fetched+normalized payload keys: %s", list(normalized.keys()))
+        return normalized
