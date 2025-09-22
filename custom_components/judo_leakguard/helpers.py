@@ -2,6 +2,56 @@ from __future__ import annotations
 
 from typing import Any, Iterable
 
+U8_MAX = 0xFF
+U16_MAX = 0xFFFF
+U32_MAX = 0xFFFFFFFF
+
+
+def _clamp(value: int, maximum: int) -> int:
+    """Clamp ``value`` to the range 0..maximum."""
+
+    if value < 0:
+        return 0
+    if value > maximum:
+        return maximum
+    return int(value)
+
+
+def toU8(value: int) -> bytes:
+    """Serialize ``value`` as unsigned 8-bit big-endian bytes."""
+
+    return bytes([_clamp(value, U8_MAX)])
+
+
+def toU16BE(value: int) -> bytes:
+    """Serialize ``value`` as unsigned 16-bit big-endian bytes."""
+
+    return _clamp(value, U16_MAX).to_bytes(2, "big", signed=False)
+
+
+def toU32BE(value: int) -> bytes:
+    """Serialize ``value`` as unsigned 32-bit big-endian bytes."""
+
+    return _clamp(value, U32_MAX).to_bytes(4, "big", signed=False)
+
+
+def fromU16BE(data: bytes, offset: int = 0) -> int:
+    """Parse an unsigned 16-bit big-endian integer from ``data`` at ``offset``."""
+
+    end = offset + 2
+    if end > len(data):
+        raise ValueError("Not enough data for U16")
+    return int.from_bytes(data[offset:end], "big", signed=False)
+
+
+def fromU32BE(data: bytes, offset: int = 0) -> int:
+    """Parse an unsigned 32-bit big-endian integer from ``data`` at ``offset``."""
+
+    end = offset + 4
+    if end > len(data):
+        raise ValueError("Not enough data for U32")
+    return int.from_bytes(data[offset:end], "big", signed=False)
+
 from homeassistant.helpers.entity import DeviceInfo
 
 from .const import DOMAIN

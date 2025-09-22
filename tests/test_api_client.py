@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from collections import deque
 from datetime import datetime, timezone
 from typing import Any, Dict
@@ -9,16 +10,29 @@ import aiohttp
 import pytest
 
 from custom_components.judo_leakguard.api import (
+    AbsenceLimits,
+    AbsenceWindow,
+    DeviceClock,
+    InstallationInfo,
     JudoApiError,
     JudoClient,
+    LearnStatus,
+    TotalWater,
 )
 
 
 class DummyResponse:
-    def __init__(self, status: int = 200, body: str = "", raise_error: Exception | None = None) -> None:
+    def __init__(
+        self,
+        status: int = 200,
+        body: str = "",
+        raise_error: Exception | None = None,
+        headers: Dict[str, str] | None = None,
+    ) -> None:
         self.status = status
         self._body = body
         self._raise_error = raise_error
+        self.headers = headers or {}
 
     async def __aenter__(self) -> "DummyResponse":
         return self
@@ -152,6 +166,25 @@ async def test_rest_request_handles_404(dummy_session: DummySession):
 
 
 @pytest.mark.asyncio
+async def test_rest_request_retries_on_429(monkeypatch, dummy_session: DummySession):
+    dummy_session.queue(DummyResponse(status=429, body="", headers={"Retry-After": "1"}))
+    dummy_session.queue(DummyResponse(status=200, body="data=AA"))
+    client = make_client(dummy_session)
+    sleep_calls: list[float] = []
+
+    async def fake_sleep(delay: float) -> None:
+        sleep_calls.append(delay)
+
+    sleep_mock = AsyncMock(side_effect=fake_sleep)
+    monkeypatch.setattr("custom_components.judo_leakguard.api.asyncio.sleep", sleep_mock)
+
+    result = await client._rest_request(0x52)
+    assert result["data"] == "AA"
+    assert sleep_mock.await_count == 1
+    assert sleep_calls[0] >= 2.0
+
+
+@pytest.mark.asyncio
 async def test_rest_bytes_returns_payload(monkeypatch):
     client = make_client(DummySession())
     monkeypatch.setattr(client, "_rest_request", AsyncMock(return_value={"data": "0102"}))
@@ -194,7 +227,7 @@ async def test_write_absence_limits_serializes(monkeypatch):
     await client.write_absence_limits(-1, 70000, 30)
     mock.assert_awaited_once()
     call = mock.await_args
-    assert call.args == (0x5F, b"\x00\x00\xff\xff\x1e\x00")
+    assert call.args == (0x5F, b"\x00\x00\xff\xff\x00\x1e")
 
 
 @pytest.mark.asyncio
@@ -221,6 +254,20 @@ async def test_read_sleep_duration_none(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_read_absence_limits(monkeypatch):
+    client = make_client(DummySession())
+    payload = b"\x00d\x00\xc8\x00\x0f"
+    monkeypatch.setattr(client, "_rest_bytes", AsyncMock(return_value=payload))
+    limits = await client.read_absence_limits()
+    assert isinstance(limits, AbsenceLimits)
+    assert limits.flow_l_h == 100
+    assert limits.volume_l == 200
+    assert limits.duration_min == 15
+    monkeypatch.setattr(client, "_rest_bytes", AsyncMock(return_value=b"\x00"))
+    assert await client.read_absence_limits() is None
+
+
+@pytest.mark.asyncio
 async def test_write_device_time(monkeypatch):
     client = make_client(DummySession())
     mock = AsyncMock()
@@ -230,6 +277,19 @@ async def test_write_device_time(monkeypatch):
     mock.assert_awaited_once()
     call = mock.await_args
     assert call.args == (0x5A, bytes([1, 5, 23, 12, 30, 45]))
+
+
+@pytest.mark.asyncio
+async def test_read_device_time(monkeypatch):
+    client = make_client(DummySession())
+    payload = bytes([1, 2, 23, 3, 4, 5])
+    monkeypatch.setattr(client, "_rest_bytes", AsyncMock(return_value=payload))
+    clock = await client.read_device_time()
+    assert isinstance(clock, DeviceClock)
+    assert clock.year == 2023
+    assert clock.to_dict()["device_time_day"] == 1
+    monkeypatch.setattr(client, "_rest_bytes", AsyncMock(return_value=b"\x01"))
+    assert await client.read_device_time() is None
 
 
 @pytest.mark.asyncio
@@ -246,8 +306,7 @@ async def test_read_serial_number(monkeypatch):
     client = make_client(DummySession())
     serial_bytes = b"\x39\x30\x00\x00"
     monkeypatch.setattr(client, "_rest_bytes", AsyncMock(return_value=serial_bytes))
-    expected = int.from_bytes(serial_bytes, "little", signed=False)
-    assert await client.read_serial_number() == str(expected)
+    assert await client.read_serial_number() == serial_bytes.hex().upper()
     monkeypatch.setattr(client, "_rest_bytes", AsyncMock(return_value=b"\x01\x02"))
     assert await client.read_serial_number() is None
 
@@ -272,21 +331,37 @@ async def test_read_installation_timestamp(monkeypatch):
     payload = timestamp.to_bytes(4, "big")
     monkeypatch.setattr(client, "_rest_bytes", AsyncMock(return_value=payload))
     result = await client.read_installation_timestamp()
-    assert result["installation_timestamp"] == timestamp
-    assert result["installation_datetime"].year == 2022
+    assert isinstance(result, InstallationInfo)
+    assert result.timestamp == timestamp
+    assert result.as_datetime().year == 2022
     monkeypatch.setattr(client, "_rest_bytes", AsyncMock(return_value=b"\x01"))
-    assert await client.read_installation_timestamp() == {}
+    assert await client.read_installation_timestamp() is None
 
 
 @pytest.mark.asyncio
 async def test_read_total_water(monkeypatch):
     client = make_client(DummySession())
-    monkeypatch.setattr(client, "_rest_bytes", AsyncMock(return_value=(1234).to_bytes(4, "little")))
+    monkeypatch.setattr(client, "_rest_bytes", AsyncMock(return_value=(1234).to_bytes(4, "big")))
     result = await client.read_total_water()
-    assert result["total_water_l"] == 1234
-    assert result["total_water_m3"] == pytest.approx(1.234)
+    assert isinstance(result, TotalWater)
+    assert result.liters == 1234
+    assert result.to_dict()["total_water_m3"] == pytest.approx(1.234)
     monkeypatch.setattr(client, "_rest_bytes", AsyncMock(return_value=b"\x01"))
-    assert await client.read_total_water() == {}
+    assert await client.read_total_water() is None
+
+
+@pytest.mark.asyncio
+async def test_read_learn_status(monkeypatch):
+    client = make_client(DummySession())
+    payload = b"\x01\x00d"
+    monkeypatch.setattr(client, "_rest_bytes", AsyncMock(return_value=payload))
+    status = await client.read_learn_status()
+    assert isinstance(status, LearnStatus)
+    assert status.active is True
+    assert status.remaining_l == 100
+    assert status.to_dict()["learn_remaining_m3"] == pytest.approx(0.1)
+    monkeypatch.setattr(client, "_rest_bytes", AsyncMock(return_value=b""))
+    assert await client.read_learn_status() is None
 
 
 @pytest.mark.asyncio
@@ -295,10 +370,11 @@ async def test_read_absence_time(monkeypatch):
     payload = bytes([1, 2, 30, 3, 4, 45])
     monkeypatch.setattr(client, "_rest_bytes", AsyncMock(return_value=payload))
     result = await client.read_absence_time(2)
-    assert result["slot"] == 2
-    assert result["start_day"] == 1
+    assert isinstance(result, AbsenceWindow)
+    assert result.slot == 2
+    assert result.start_day == 1
     monkeypatch.setattr(client, "_rest_bytes", AsyncMock(return_value=b"\x00"))
-    assert await client.read_absence_time(1) == {}
+    assert await client.read_absence_time(1) is None
 
 
 @pytest.mark.asyncio
@@ -317,7 +393,7 @@ async def test_write_absence_time_and_delete(monkeypatch):
 @pytest.mark.asyncio
 async def test_read_stats_helpers(monkeypatch):
     client = make_client(DummySession())
-    payload = b"".join(i.to_bytes(4, "little") for i in range(1, 4))
+    payload = b"".join(i.to_bytes(4, "big") for i in range(1, 4))
     monkeypatch.setattr(client, "_rest_bytes", AsyncMock(return_value=payload))
     assert await client.read_day_stats(32, 13, 2025) == [1, 2, 3]
     monkeypatch.setattr(client, "_rest_bytes", AsyncMock(return_value=payload))
