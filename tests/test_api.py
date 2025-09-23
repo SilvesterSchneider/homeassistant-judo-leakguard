@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock
+
+import aiohttp
 
 import pytest
 
@@ -118,6 +121,37 @@ async def test_rest_request_retries_on_rate_limit(bypass_throttle: list[float]) 
     assert payload["ok"] is True
     delays = [delay for delay in bypass_throttle if delay > 0]
     assert delays == [2.0]
+
+
+@pytest.mark.asyncio
+async def test_rest_request_send_as_query_and_empty_response() -> None:
+    responses = {
+        "https://example/api/rest/5300?data=AA": [ResponseSpec(status=200, body="")]
+    }
+    async with MockClientSession(responses) as session:
+        client = JudoClient(session, "https://example", send_as_query=True)
+        result = await client._rest_request(0x53, b"\xaa")
+
+    assert result == {}
+    called_url, params = session.calls[0]
+    assert "?data=AA" in called_url
+    assert params["auth"] is None
+
+
+@pytest.mark.asyncio
+async def test_rest_request_timeout_and_budget_errors() -> None:
+    async with MockClientSession(
+        {"https://example/api/rest/5300": [ResponseSpec(exception=asyncio.TimeoutError())]}
+    ) as session:
+        client = JudoClient(session, "https://example")
+        with pytest.raises(JudoConnectionError, match="Timeout"):
+            await client._rest_request(0x53)
+
+    async with MockClientSession() as session:
+        client = JudoClient(session, "https://example")
+        client._max_attempts = 0
+        with pytest.raises(JudoConnectionError, match="Exceeded retry budget"):
+            await client._rest_request(0x53)
 
 
 @pytest.mark.asyncio
@@ -374,6 +408,40 @@ async def test_fetch_json_error_handling(
 
         monkeypatch.setattr(client._session, "get", lambda *args, **kwargs: FailingContext())
         assert await client._fetch_json("/status") is None
+
+
+@pytest.mark.asyncio
+async def test_fetch_json_empty_body_returns_none() -> None:
+    responses = {"https://example/status": [ResponseSpec(status=200, body="")]}
+    async with MockClientSession(responses) as session:
+        client = JudoClient(session, "https://example")
+        assert await client._fetch_json("/status") is None
+
+
+@pytest.mark.asyncio
+async def test_fetch_json_handles_timeouts_and_client_errors() -> None:
+    async with MockClientSession(
+        {"https://example/status": [ResponseSpec(exception=asyncio.TimeoutError())]}
+    ) as session:
+        client = JudoClient(session, "https://example")
+        with pytest.raises(JudoConnectionError, match="Timeout"):
+            await client._fetch_json("/status")
+
+    async with MockClientSession(
+        {"https://example/status": [ResponseSpec(exception=aiohttp.ClientError("boom"))]}
+    ) as session:
+        client = JudoClient(session, "https://example")
+        with pytest.raises(JudoConnectionError, match="Client error"):
+            await client._fetch_json("/status")
+
+
+@pytest.mark.asyncio
+async def test_fetch_json_exceeded_budget() -> None:
+    async with MockClientSession() as session:
+        client = JudoClient(session, "https://example")
+        client._max_attempts = 0
+        with pytest.raises(JudoConnectionError, match="Exceeded retry budget"):
+            await client._fetch_json("/status")
 
 
 @pytest.mark.asyncio

@@ -5,6 +5,7 @@ import pytest
 from homeassistant.helpers import entity_registry as er
 
 from custom_components.judo_leakguard.const import DOMAIN
+from custom_components.judo_leakguard.select import MicroLeakMode, VacationType
 
 
 @pytest.mark.usefixtures("mock_judo_api")
@@ -57,3 +58,26 @@ async def test_microleak_select_options(
     )
     assert api.microleak_writes[-1] == expected_index
     assert hass.states.get(entity_id).state == option
+
+
+@pytest.mark.usefixtures("mock_judo_api")
+async def test_select_entities_handle_invalid_values(setup_integration) -> None:
+    coordinator = setup_integration["coordinator"]
+    entry = setup_integration["entry"]
+    client = setup_integration["api"]
+
+    vac_entity = VacationType(coordinator, client, entry)
+    coordinator.data["vacation_type"] = "invalid"
+    assert vac_entity.current_option is None
+    coordinator.data["vacation_type"] = 99
+    assert vac_entity.current_option is None
+    with pytest.raises(ValueError):
+        await vac_entity.async_select_option("unsupported")
+
+    leak_entity = MicroLeakMode(coordinator, client, entry)
+    coordinator.data["microleak_mode"] = "oops"
+    assert leak_entity.current_option is None
+    coordinator.data["microleak_mode"] = 42
+    assert leak_entity.current_option is None
+    with pytest.raises(ValueError):
+        await leak_entity.async_select_option("invalid")

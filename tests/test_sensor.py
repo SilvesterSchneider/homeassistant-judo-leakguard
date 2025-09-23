@@ -8,7 +8,11 @@ from homeassistant.const import STATE_UNKNOWN
 from homeassistant.helpers import device_registry as dr, entity_registry as er
 
 from custom_components.judo_leakguard.const import DOMAIN
-from custom_components.judo_leakguard.sensor import SENSOR_DESCRIPTIONS
+from custom_components.judo_leakguard.sensor import (
+    SENSOR_DESCRIPTIONS,
+    JudoSensor,
+    async_setup_entry as sensor_async_setup_entry,
+)
 
 from .helpers import SERIAL
 
@@ -82,3 +86,27 @@ async def test_sensor_states_match_payload(hass, setup_integration) -> None:
             assert state.attributes.get("device_class") == description.device_class
         if description.state_class:
             assert state.attributes.get("state_class") == description.state_class
+
+
+@pytest.mark.usefixtures("mock_judo_api")
+async def test_sensor_availability_flag(setup_integration) -> None:
+    coordinator = setup_integration["coordinator"]
+    entry = setup_integration["entry"]
+    sensor = JudoSensor(coordinator, entry, SENSOR_DESCRIPTIONS[0])
+
+    coordinator.last_update_success = False
+    assert not sensor.available
+    coordinator.last_update_success = True
+    assert sensor.available
+
+
+@pytest.mark.asyncio
+async def test_sensor_setup_without_coordinator(hass, mock_config_entry) -> None:
+    hass.data.setdefault(DOMAIN, {})[mock_config_entry.entry_id] = {}
+    added_entities = []
+
+    async def _async_add_entities(entities, update_before_add=False):
+        added_entities.extend(entities)
+
+    await sensor_async_setup_entry(hass, mock_config_entry, _async_add_entities)
+    assert not added_entities
