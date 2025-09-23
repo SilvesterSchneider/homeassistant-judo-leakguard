@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import AsyncGenerator, Generator
+from collections.abc import AsyncGenerator, Awaitable, Callable, Generator
+import asyncio
 from copy import deepcopy
 import importlib
 import inspect
@@ -121,6 +122,93 @@ if plugin_module is not None:
                 return hass_func(**kwargs)
 
 
+def _sync_noop() -> None:
+    return None
+
+
+async def _async_noop() -> None:  # pragma: no cover - trivial
+    return None
+
+
+def _ensure_hass_sync(
+    hass_obj: Any, request: pytest.FixtureRequest
+) -> tuple[HomeAssistant, Callable[[], None]]:
+    if isinstance(hass_obj, HomeAssistant):
+        return hass_obj, _sync_noop
+
+    loop = getattr(hass_obj, "loop", None)
+    if loop is None:
+        try:
+            loop = request.getfixturevalue("event_loop")
+        except pytest.FixtureLookupError:
+            loop = asyncio.get_event_loop()
+
+    if inspect.isasyncgen(hass_obj):
+        hass_gen = hass_obj
+        hass_instance = loop.run_until_complete(hass_gen.__anext__())
+
+        def _finalize() -> None:
+            try:
+                loop.run_until_complete(hass_gen.aclose())
+            except (RuntimeError, AttributeError, StopAsyncIteration):
+                pass
+
+        return hass_instance, _finalize
+
+    if inspect.isawaitable(hass_obj):
+        return loop.run_until_complete(hass_obj), _sync_noop
+
+    if inspect.isgenerator(hass_obj):
+        hass_gen = hass_obj
+        hass_instance = next(hass_gen)
+
+        def _finalize() -> None:
+            try:
+                next(hass_gen)
+            except StopIteration:
+                pass
+
+        return hass_instance, _finalize
+
+    raise TypeError("Unexpected hass fixture type")
+
+
+async def _ensure_hass_async(
+    hass_obj: Any, request: pytest.FixtureRequest
+) -> tuple[HomeAssistant, Callable[[], Awaitable[None]]]:
+    if isinstance(hass_obj, HomeAssistant):
+        return hass_obj, _async_noop
+
+    if inspect.isasyncgen(hass_obj):
+        hass_gen = hass_obj
+        hass_instance = await hass_gen.__anext__()
+
+        async def _finalize() -> None:
+            try:
+                await hass_gen.aclose()
+            except (RuntimeError, AttributeError, StopAsyncIteration):
+                pass
+
+        return hass_instance, _finalize
+
+    if inspect.isawaitable(hass_obj):
+        return await hass_obj, _async_noop
+
+    if inspect.isgenerator(hass_obj):
+        hass_gen = hass_obj
+        hass_instance = next(hass_gen)
+
+        async def _finalize() -> None:
+            try:
+                next(hass_gen)
+            except StopIteration:
+                pass
+
+        return hass_instance, _finalize
+
+    return hass_obj, _async_noop
+
+
 @pytest.fixture
 def mock_config_entry() -> MockConfigEntry:
     entry = MockConfigEntry(
@@ -189,9 +277,11 @@ if async_fixture is pytest.fixture:
         hass: HomeAssistant,
         mock_config_entry: MockConfigEntry,
         mock_judo_api: tuple[type[MockJudoApi], list[MockJudoApi]],
+        request: pytest.FixtureRequest,
     ) -> Generator[dict[str, Any], None, None]:
         api_class, instances = mock_judo_api
         api_class.default_payload = fresh_payload()
+        hass, finalize_hass = _ensure_hass_sync(hass, request)
         mock_config_entry.add_to_hass(hass)
         loop = hass.loop
         assert loop.run_until_complete(
@@ -203,17 +293,19 @@ if async_fixture is pytest.fixture:
         data = hass.data[DOMAIN][mock_config_entry.entry_id]
         coordinator = data["coordinator"]
 
-        yield {
-            "entry": mock_config_entry,
-            "api": api_instance,
-            "coordinator": coordinator,
-            "data": data,
-        }
-
-        assert loop.run_until_complete(
-            hass.config_entries.async_unload(mock_config_entry.entry_id)
-        )
-        loop.run_until_complete(hass.async_block_till_done())
+        try:
+            yield {
+                "entry": mock_config_entry,
+                "api": api_instance,
+                "coordinator": coordinator,
+                "data": data,
+            }
+        finally:
+            assert loop.run_until_complete(
+                hass.config_entries.async_unload(mock_config_entry.entry_id)
+            )
+            loop.run_until_complete(hass.async_block_till_done())
+            finalize_hass()
 
 else:
 
@@ -222,9 +314,11 @@ else:
         hass: HomeAssistant,
         mock_config_entry: MockConfigEntry,
         mock_judo_api: tuple[type[MockJudoApi], list[MockJudoApi]],
+        request: pytest.FixtureRequest,
     ) -> AsyncGenerator[dict[str, Any], None]:
         api_class, instances = mock_judo_api
         api_class.default_payload = fresh_payload()
+        hass, finalize_hass = await _ensure_hass_async(hass, request)
         mock_config_entry.add_to_hass(hass)
         assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
         await hass.async_block_till_done()
@@ -233,15 +327,17 @@ else:
         data = hass.data[DOMAIN][mock_config_entry.entry_id]
         coordinator = data["coordinator"]
 
-        yield {
-            "entry": mock_config_entry,
-            "api": api_instance,
-            "coordinator": coordinator,
-            "data": data,
-        }
-
-        assert await hass.config_entries.async_unload(mock_config_entry.entry_id)
-        await hass.async_block_till_done()
+        try:
+            yield {
+                "entry": mock_config_entry,
+                "api": api_instance,
+                "coordinator": coordinator,
+                "data": data,
+            }
+        finally:
+            assert await hass.config_entries.async_unload(mock_config_entry.entry_id)
+            await hass.async_block_till_done()
+            await finalize_hass()
 
 
 @pytest.fixture
