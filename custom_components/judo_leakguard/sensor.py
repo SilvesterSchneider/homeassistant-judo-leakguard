@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 import logging
 
@@ -30,6 +30,10 @@ from .helpers import build_device_info, build_unique_id, first_present
 _LOGGER = logging.getLogger(__name__)
 
 DOMAIN = "judo_leakguard"
+
+UNIT_LITERS_PER_HOUR: str = cast(
+    str, getattr(UnitOfVolumeFlowRate, "LITERS_PER_HOUR", "L/h")
+)
 
 
 @dataclass(frozen=True)
@@ -102,7 +106,7 @@ SENSOR_DESCRIPTIONS: tuple[JudoSensorEntityDescription, ...] = (
         key="absence_flow_l_h",
         translation_key="absence_flow_limit",
         paths=("absence_flow_l_h",),
-        native_unit_of_measurement=UnitOfVolumeFlowRate.LITERS_PER_HOUR,
+        native_unit_of_measurement=UNIT_LITERS_PER_HOUR,
         state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
     ),

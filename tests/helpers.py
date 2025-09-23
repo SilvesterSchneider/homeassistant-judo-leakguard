@@ -2,10 +2,17 @@
 
 from __future__ import annotations
 
+from __future__ import annotations
+
+import asyncio
+from collections import deque
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Dict, List
+from types import SimpleNamespace
+from typing import Any, Deque, Dict, Iterable, List, Mapping, MutableMapping
+
+import aiohttp
 
 SERIAL = "SN123456"
 INSTALLATION_DT = datetime(2023, 8, 12, 10, 30, 45, tzinfo=timezone.utc)
@@ -198,3 +205,116 @@ def fresh_payload() -> Dict[str, Any]:
     """Return a copy of the base payload so tests can mutate safely."""
 
     return deepcopy(_base_payload())
+
+
+@dataclass(slots=True)
+class ResponseSpec:
+    """Specification for a queued HTTP response used by :class:`MockClientSession`."""
+
+    status: int = 200
+    body: str = ""
+    headers: Mapping[str, str] | None = None
+    exception: Exception | None = None
+
+
+def make_client_response_error(
+    status: int,
+    message: str = "",
+    headers: Mapping[str, str] | None = None,
+) -> aiohttp.ClientResponseError:
+    """Create an :class:`aiohttp.ClientResponseError` compatible with all versions."""
+
+    request_info = SimpleNamespace(real_url="http://test")
+    try:
+        return aiohttp.ClientResponseError(
+            request_info,
+            (),
+            status=status,
+            message=message,
+            headers=headers,
+        )
+    except TypeError:
+        # Older or stubbed aiohttp versions accept the legacy signature.
+        return aiohttp.ClientResponseError(status, message or f"HTTP status {status}")
+
+
+def make_client_connector_error(message: str = "boom") -> aiohttp.ClientConnectorError:
+    """Create an :class:`aiohttp.ClientConnectorError` across aiohttp versions."""
+
+    fake_key = SimpleNamespace(
+        host="example.com",
+        port=443,
+        ssl=None,
+        family=0,
+        proto=0,
+        flags=0,
+    )
+    try:
+        return aiohttp.ClientConnectorError(fake_key, OSError(message))
+    except TypeError:
+        return aiohttp.ClientConnectorError(message)
+
+
+class MockResponse:
+    """Lightweight stand-in for :class:`aiohttp.ClientResponse`."""
+
+    def __init__(
+        self, status: int, body: str, headers: Mapping[str, str] | None = None
+    ) -> None:
+        self.status = status
+        self._body = body
+        self.headers = dict(headers or {})
+
+    async def text(self) -> str:
+        await asyncio.sleep(0)
+        return self._body
+
+    def raise_for_status(self) -> None:
+        if self.status >= 400:
+            raise make_client_response_error(self.status, headers=self.headers)
+
+
+class _RequestContext:
+    def __init__(self, spec: ResponseSpec) -> None:
+        self._spec = spec
+
+    async def __aenter__(self) -> MockResponse:
+        if self._spec.exception is not None:
+            raise self._spec.exception
+        return MockResponse(self._spec.status, self._spec.body, self._spec.headers)
+
+    async def __aexit__(self, exc_type, exc, tb) -> None:
+        return None
+
+
+class MockClientSession:
+    """Minimal HTTP client that serves pre-registered responses."""
+
+    def __init__(
+        self, responses: Mapping[str, Iterable[ResponseSpec]] | None = None
+    ) -> None:
+        self._responses: MutableMapping[str, Deque[ResponseSpec]] = {
+            url: deque(specs)
+            for url, specs in (responses or {}).items()
+        }
+        self.calls: list[tuple[str, Dict[str, Any]]] = []
+        self.closed = False
+
+    def queue_response(self, url: str, spec: ResponseSpec) -> None:
+        self._responses.setdefault(url, deque()).append(spec)
+
+    def get(self, url: str, **kwargs: Any) -> _RequestContext:
+        self.calls.append((url, dict(kwargs)))
+        if url not in self._responses or not self._responses[url]:
+            raise AssertionError(f"No queued response for {url}")
+        spec = self._responses[url].popleft()
+        return _RequestContext(spec)
+
+    async def close(self) -> None:
+        self.closed = True
+
+    async def __aenter__(self) -> "MockClientSession":
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb) -> None:
+        await self.close()
