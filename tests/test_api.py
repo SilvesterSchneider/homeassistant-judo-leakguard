@@ -5,9 +5,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock
 
-import aiohttp
 import pytest
-from aioresponses import aioresponses
 
 from custom_components.judo_leakguard.api import (
     AbsenceLimits,
@@ -23,6 +21,11 @@ from custom_components.judo_leakguard.api import (
     TotalWater,
 )
 from custom_components.judo_leakguard.helpers import toU16BE, toU32BE
+from tests.helpers import (
+    MockClientSession,
+    ResponseSpec,
+    make_client_connector_error,
+)
 
 
 def test_format_command_and_encode_payload() -> None:
@@ -67,7 +70,7 @@ def test_parse_and_extract_helpers() -> None:
 async def test_handle_rate_limit_respects_retry_after(bypass_throttle: list[float]) -> None:
     """Rate-limit handling should honour Retry-After headers."""
 
-    async with aiohttp.ClientSession() as session:
+    async with MockClientSession() as session:
         client = JudoClient(session, "https://example")
         next_delay = await client._handle_rate_limit(
             "https://example/path",
@@ -84,7 +87,7 @@ async def test_handle_rate_limit_respects_retry_after(bypass_throttle: list[floa
 async def test_handle_rate_limit_with_invalid_header(bypass_throttle: list[float]) -> None:
     """Invalid Retry-After headers should be ignored gracefully."""
 
-    async with aiohttp.ClientSession() as session:
+    async with MockClientSession() as session:
         client = JudoClient(session, "https://example")
         next_delay = await client._handle_rate_limit(
             "https://example/path",
@@ -101,21 +104,15 @@ async def test_handle_rate_limit_with_invalid_header(bypass_throttle: list[float
 async def test_rest_request_retries_on_rate_limit(bypass_throttle: list[float]) -> None:
     """The client should retry after rate-limit responses."""
 
-    async with aiohttp.ClientSession() as session:
+    responses = {
+        "https://example/api/rest/5300": [
+            ResponseSpec(status=429, headers={"Retry-After": "1"}),
+            ResponseSpec(status=200, body="{\"ok\": true}"),
+        ]
+    }
+    async with MockClientSession(responses) as session:
         client = JudoClient(session, "https://example", verify_ssl=False)
-        with aioresponses() as mocked:
-            mocked.get(
-                "https://example/api/rest/5300",
-                status=429,
-                body="",
-                headers={"Retry-After": "1"},
-            )
-            mocked.get(
-                "https://example/api/rest/5300",
-                status=200,
-                body="{\"ok\": true}",
-            )
-            payload = await client._rest_request(0x53)
+        payload = await client._rest_request(0x53)
 
     assert payload["_url"].endswith("/api/rest/5300")
     assert payload["ok"] is True
@@ -127,24 +124,30 @@ async def test_rest_request_retries_on_rate_limit(bypass_throttle: list[float]) 
 async def test_rest_request_handles_errors() -> None:
     """Error responses should be converted into API exceptions."""
 
-    async with aiohttp.ClientSession() as session:
+    async with MockClientSession(
+        {"https://example/api/rest/0000": [ResponseSpec(status=404)]}
+    ) as session:
         client = JudoClient(session, "https://example")
-        with aioresponses() as mocked:
-            mocked.get("https://example/api/rest/0000", status=404, body="")
-            result = await client._rest_request(0x00)
-        assert result == {}
+        result = await client._rest_request(0x00)
+    assert result == {}
 
-        with aioresponses() as mocked:
-            mocked.get("https://example/api/rest/5300", status=401, body="")
-            with pytest.raises(JudoAuthenticationError):
-                await client._rest_request(0x53)
+    async with MockClientSession(
+        {"https://example/api/rest/5300": [ResponseSpec(status=401)]}
+    ) as session:
+        client = JudoClient(session, "https://example")
+        with pytest.raises(JudoAuthenticationError):
+            await client._rest_request(0x53)
 
-        with aioresponses() as mocked:
-            mocked.get("https://example/api/rest/5300", status=500, body="")
-            result = await client._rest_request(0x53)
-        assert result == {}
+    async with MockClientSession(
+        {"https://example/api/rest/5300": [ResponseSpec(status=500)]}
+    ) as session:
+        client = JudoClient(session, "https://example")
+        result = await client._rest_request(0x53)
+    assert result == {}
 
-        long_payload = bytes(range(81))
+    long_payload = bytes(range(81))
+    async with MockClientSession() as session:
+        client = JudoClient(session, "https://example")
         with pytest.raises(JudoApiError):
             await client._rest_request(0x10, long_payload)
 
@@ -153,7 +156,7 @@ async def test_rest_request_handles_errors() -> None:
 async def test_rest_bytes_handles_hex_payloads() -> None:
     """_rest_bytes should decode hexadecimal payloads or raise errors."""
 
-    async with aiohttp.ClientSession() as session:
+    async with MockClientSession() as session:
         client = JudoClient(session, "https://example")
 
         async def fake_request(command: int, payload: bytes | None) -> dict[str, str]:
@@ -220,7 +223,7 @@ def test_device_clock_and_dataclasses(monkeypatch: pytest.MonkeyPatch) -> None:
 async def test_normalize_converts_values(monkeypatch: pytest.MonkeyPatch) -> None:
     """_normalize should coerce types and compute derived metrics."""
 
-    async with aiohttp.ClientSession() as session:
+    async with MockClientSession() as session:
         api = JudoLeakguardApi(session, "https://example")
 
         reference = datetime(2024, 1, 1, 0, 0, 10, tzinfo=timezone.utc)
@@ -254,7 +257,7 @@ async def test_normalize_converts_values(monkeypatch: pytest.MonkeyPatch) -> Non
 
 @pytest.mark.asyncio
 async def test_client_url_generation() -> None:
-    async with aiohttp.ClientSession() as session:
+    async with MockClientSession() as session:
         client = JudoClient(session, "https://example/")
         assert client._base_url == "https://example"
         assert client._url("path") == "https://example/path"
@@ -265,7 +268,7 @@ async def test_client_url_generation() -> None:
 async def test_collect_rest_data_gathers_information() -> None:
     """_collect_rest_data should aggregate readings and handle errors."""
 
-    async with aiohttp.ClientSession() as session:
+    async with MockClientSession() as session:
         api = JudoLeakguardApi(session, "https://example")
 
         api.read_sleep_duration = AsyncMock(return_value=7)
@@ -310,44 +313,56 @@ async def test_fetch_json_error_handling(
 ) -> None:
     """_fetch_json should cope with a variety of error responses."""
 
-    async with aiohttp.ClientSession() as session:
+    async with MockClientSession(
+        {"https://example/status": [ResponseSpec(status=404)]}
+    ) as session:
         client = JudoClient(session, "https://example")
-        with aioresponses() as mocked:
-            mocked.get("https://example/status", status=404, body="")
-            assert await client._fetch_json("/status") is None
+        assert await client._fetch_json("/status") is None
 
-        with aioresponses() as mocked:
-            mocked.get("https://example/status", status=200, body="not-json")
-            assert await client._fetch_json("/status") is None
+    async with MockClientSession(
+        {"https://example/status": [ResponseSpec(status=200, body="not-json")]}
+    ) as session:
+        client = JudoClient(session, "https://example")
+        assert await client._fetch_json("/status") is None
 
-        with aioresponses() as mocked:
-            mocked.get("https://example/status", status=401, body="")
-            with pytest.raises(JudoAuthenticationError):
-                await client._fetch_json("/status")
+    async with MockClientSession(
+        {"https://example/status": [ResponseSpec(status=401)]}
+    ) as session:
+        client = JudoClient(session, "https://example")
+        with pytest.raises(JudoAuthenticationError):
+            await client._fetch_json("/status")
 
-        with aioresponses() as mocked:
-            mocked.get("https://example/status", status=429, body="", headers={"Retry-After": "1"})
-            mocked.get("https://example/status", status=200, body='{"ok": true}')
-            payload = await client._fetch_json("/status")
-            assert payload == {"ok": True}
-        assert any(delay >= 2.0 for delay in bypass_throttle)
-        bypass_throttle.clear()
+    async with MockClientSession(
+        {
+            "https://example/status": [
+                ResponseSpec(status=429, headers={"Retry-After": "1"}),
+                ResponseSpec(status=200, body='{"ok": true}'),
+            ]
+        }
+    ) as session:
+        client = JudoClient(session, "https://example")
+        payload = await client._fetch_json("/status")
+        assert payload == {"ok": True}
+    assert any(delay >= 2.0 for delay in bypass_throttle)
+    bypass_throttle.clear()
 
-        with aioresponses() as mocked:
-            mocked.get("https://example/status", status=500, body="")
-            assert await client._fetch_json("/status") is None
+    async with MockClientSession(
+        {"https://example/status": [ResponseSpec(status=500)]}
+    ) as session:
+        client = JudoClient(session, "https://example")
+        assert await client._fetch_json("/status") is None
 
-    async with aiohttp.ClientSession() as session:
+    async with MockClientSession() as session:
         client = JudoClient(session, "https://example")
 
         def raise_connector(*_: object, **__: object):
-            raise aiohttp.ClientConnectorError("boom")
+            raise make_client_connector_error("boom")
 
         monkeypatch.setattr(client._session, "get", raise_connector)
         with pytest.raises(JudoConnectionError):
             await client._fetch_json("/status")
 
-    async with aiohttp.ClientSession() as session:
+    async with MockClientSession() as session:
         client = JudoClient(session, "https://example")
 
         class FailingContext:
@@ -365,7 +380,7 @@ async def test_fetch_json_error_handling(
 async def test_fetch_all_merges_all_sources() -> None:
     """fetch_all should merge REST data with JSON endpoints."""
 
-    async with aiohttp.ClientSession() as session:
+    async with MockClientSession() as session:
         api = JudoLeakguardApi(session, "https://example")
 
         responses = {
@@ -392,7 +407,7 @@ async def test_fetch_all_merges_all_sources() -> None:
 async def test_fetch_all_returns_empty_when_no_sources() -> None:
     """If no endpoints return payloads the API should yield an empty dict."""
 
-    async with aiohttp.ClientSession() as session:
+    async with MockClientSession() as session:
         api = JudoLeakguardApi(session, "https://example")
         api._fetch_json = AsyncMock(return_value=None)
         api._collect_rest_data = AsyncMock(return_value={})
@@ -405,7 +420,7 @@ async def test_fetch_all_returns_empty_when_no_sources() -> None:
 async def test_read_write_methods_cover_branches() -> None:
     """Exercise individual read and write helpers in the API client."""
 
-    async with aiohttp.ClientSession() as session:
+    async with MockClientSession() as session:
         api = JudoLeakguardApi(session, "https://example")
         api._rest_request = AsyncMock()
         api._rest_bytes = AsyncMock(return_value=b"")
