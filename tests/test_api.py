@@ -22,7 +22,7 @@ from custom_components.judo_leakguard.api import (
     LearnStatus,
     TotalWater,
 )
-from custom_components.judo_leakguard.helpers import toU16BE, toU32BE, toU8
+from custom_components.judo_leakguard.helpers import toU16BE, toU32BE
 
 
 def test_format_command_and_encode_payload() -> None:
