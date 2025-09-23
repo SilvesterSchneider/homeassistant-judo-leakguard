@@ -65,6 +65,10 @@ class _MockResponse:
         await asyncio.sleep(0)
         return self._body
 
+    def raise_for_status(self) -> None:
+        if self.status >= 400:
+            raise ClientResponseError(self.status)
+
     async def __aenter__(self) -> "_MockResponse":
         return self
 
@@ -104,6 +108,12 @@ class ClientSession:
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:  # pragma: no cover - compatibility
         self._closed = False
+
+    async def __aenter__(self) -> "ClientSession":
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb) -> None:
+        await self.close()
 
     @property
     def closed(self) -> bool:
