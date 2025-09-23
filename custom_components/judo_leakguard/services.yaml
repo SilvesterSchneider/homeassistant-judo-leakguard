@@ -1,0 +1,140 @@
+set_datetime:
+  name: Set device date and time
+  description: Update the internal clock of the ZEWA i-SAFE device.
+  fields:
+    config_entry_id:
+      name: Config entry
+      description: Limit the service call to a specific integration entry. Only needed when multiple Leakguard devices are configured.
+      required: false
+      example: "1a2b3c4d5e6f7a8b9c0d123456789abc"
+      selector:
+        text:
+    device_id:
+      name: Device
+      description: Target a specific Leakguard device. Overrides the config_entry_id when provided.
+      required: false
+      selector:
+        device:
+          integration: judo_leakguard
+    datetime:
+      name: Date & time
+      description: Local date and time that should be written to the device clock.
+      required: true
+      selector:
+        datetime:
+
+set_absence_schedule:
+  name: Set absence schedule
+  description: Configure one of the absence monitoring schedule slots (index 0–6).
+  fields:
+    config_entry_id:
+      name: Config entry
+      description: Limit the service call to a specific integration entry. Only needed when multiple Leakguard devices are configured.
+      required: false
+      selector:
+        text:
+    device_id:
+      name: Device
+      description: Target a specific Leakguard device. Overrides the config_entry_id when provided.
+      required: false
+      selector:
+        device:
+          integration: judo_leakguard
+    slot:
+      name: Slot
+      description: Schedule slot index (0–6).
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 6
+          step: 1
+          mode: box
+    start_day:
+      name: Start day
+      description: Start weekday (0 = Monday … 6 = Sunday).
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 6
+          step: 1
+          mode: box
+    start_hour:
+      name: Start hour
+      description: Start hour in 24h format (0–23).
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 23
+          step: 1
+          mode: box
+    start_minute:
+      name: Start minute
+      description: Start minute (0–59).
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 59
+          step: 1
+          mode: box
+    end_day:
+      name: End day
+      description: End weekday (0 = Monday … 6 = Sunday).
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 6
+          step: 1
+          mode: box
+    end_hour:
+      name: End hour
+      description: End hour in 24h format (0–23).
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 23
+          step: 1
+          mode: box
+    end_minute:
+      name: End minute
+      description: End minute (0–59).
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 59
+          step: 1
+          mode: box
+
+clear_absence_schedule:
+  name: Clear absence schedule
+  description: Delete an absence monitoring schedule slot.
+  fields:
+    config_entry_id:
+      name: Config entry
+      description: Limit the service call to a specific integration entry. Only needed when multiple Leakguard devices are configured.
+      required: false
+      selector:
+        text:
+    device_id:
+      name: Device
+      description: Target a specific Leakguard device. Overrides the config_entry_id when provided.
+      required: false
+      selector:
+        device:
+          integration: judo_leakguard
+    slot:
+      name: Slot
+      description: Schedule slot index (0–6) that should be cleared.
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 6
+          step: 1
+          mode: box

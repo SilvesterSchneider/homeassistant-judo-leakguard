@@ -1,5 +1,7 @@
 from __future__ import annotations
 from homeassistant.components.number import NumberEntity
+from homeassistant.const import UnitOfTime, UnitOfVolume, UnitOfVolumeFlowRate
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .api import JudoClient
@@ -34,6 +36,8 @@ class SleepHours(_Base):
     _attr_native_min_value = 1
     _attr_native_max_value = 10
     _attr_native_step = 1
+    _attr_native_unit_of_measurement = UnitOfTime.HOURS
+    _attr_entity_category = EntityCategory.CONFIG
     def __init__(self, coordinator, client: JudoClient, entry):
         super().__init__(coordinator, client, entry, "sleep_hours")
     @property
@@ -47,7 +51,9 @@ class FlowLimit(_Base):
     _attr_translation_key = "absence_flow_limit"
     _attr_native_min_value = 0
     _attr_native_max_value = 65535
-    _attr_native_step = 10
+    _attr_native_step = 1
+    _attr_native_unit_of_measurement = UnitOfVolumeFlowRate.LITERS_PER_HOUR
+    _attr_entity_category = EntityCategory.CONFIG
     def __init__(self, coordinator, client: JudoClient, entry):
         super().__init__(coordinator, client, entry, "absence_flow")
     @property
@@ -65,6 +71,8 @@ class VolumeLimit(_Base):
     _attr_native_min_value = 0
     _attr_native_max_value = 65535
     _attr_native_step = 1
+    _attr_native_unit_of_measurement = UnitOfVolume.LITERS
+    _attr_entity_category = EntityCategory.CONFIG
     def __init__(self, coordinator, client: JudoClient, entry):
         super().__init__(coordinator, client, entry, "absence_volume")
     @property
@@ -82,6 +90,8 @@ class DurationLimit(_Base):
     _attr_native_min_value = 0
     _attr_native_max_value = 65535
     _attr_native_step = 1
+    _attr_native_unit_of_measurement = UnitOfTime.MINUTES
+    _attr_entity_category = EntityCategory.CONFIG
     def __init__(self, coordinator, client: JudoClient, entry):
         super().__init__(coordinator, client, entry, "absence_duration")
     @property

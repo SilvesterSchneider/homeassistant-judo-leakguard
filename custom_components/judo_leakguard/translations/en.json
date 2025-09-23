@@ -62,6 +62,30 @@
       },
       "installation_date": {
         "name": "Installation date"
+      },
+      "device_time": {
+        "name": "Device time"
+      },
+      "device_type": {
+        "name": "Device type"
+      },
+      "device_serial": {
+        "name": "Serial number"
+      },
+      "device_firmware": {
+        "name": "Firmware version"
+      },
+      "daily_usage": {
+        "name": "Daily water usage"
+      },
+      "weekly_usage": {
+        "name": "Weekly water usage"
+      },
+      "monthly_usage": {
+        "name": "Monthly water usage"
+      },
+      "yearly_usage": {
+        "name": "Yearly water usage"
       }
     },
     "binary_sensor": {

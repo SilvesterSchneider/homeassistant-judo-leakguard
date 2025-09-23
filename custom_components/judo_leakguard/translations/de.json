@@ -62,6 +62,30 @@
       },
       "installation_date": {
         "name": "Installationsdatum"
+      },
+      "device_time": {
+        "name": "Gerätezeit"
+      },
+      "device_type": {
+        "name": "Gerätetyp"
+      },
+      "device_serial": {
+        "name": "Seriennummer"
+      },
+      "device_firmware": {
+        "name": "Firmware-Version"
+      },
+      "daily_usage": {
+        "name": "Tagesverbrauch"
+      },
+      "weekly_usage": {
+        "name": "Wochenverbrauch"
+      },
+      "monthly_usage": {
+        "name": "Monatsverbrauch"
+      },
+      "yearly_usage": {
+        "name": "Jahresverbrauch"
       }
     },
     "binary_sensor": {
@@ -99,9 +123,9 @@
         "name": "Urlaubsmodus",
         "state": {
           "off": "Aus",
-          "U1": "U1",
-          "U2": "U2",
-          "U3": "U3"
+          "u1": "U1",
+          "u2": "U2",
+          "u3": "U3"
         }
       },
       "microleak_mode_set": {
