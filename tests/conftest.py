@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import AsyncGenerator, Generator
 from copy import deepcopy
 import importlib
+import inspect
 from typing import Any
 
 import pytest
@@ -32,11 +33,92 @@ from custom_components.judo_leakguard.const import (
 from .helpers import MockJudoApi, SERIAL, fresh_payload
 
 try:
-    importlib.import_module("pytest_homeassistant_custom_component.plugin")
+    plugin_module = importlib.import_module("pytest_homeassistant_custom_component.plugin")
 except ModuleNotFoundError:
     pytest_plugins = ("pytest_homeassistant_custom_component",)
+    plugin_module = None
 else:
     pytest_plugins = ("pytest_homeassistant_custom_component.plugin",)
+
+if plugin_module is not None:
+    plugin_hass = getattr(plugin_module, "hass", None)
+    if plugin_hass is not None and hasattr(plugin_hass, "_get_wrapped_function"):
+        hass_func = plugin_hass._get_wrapped_function()
+        hass_params = tuple(inspect.signature(hass_func).parameters)
+
+        if inspect.isasyncgenfunction(hass_func):
+
+            if async_fixture is pytest.fixture:
+
+                @pytest.fixture(name="hass")
+                def hass_override(request: pytest.FixtureRequest) -> Generator[HomeAssistant, None, None]:
+                    kwargs = {name: request.getfixturevalue(name) for name in hass_params}
+                    loop = kwargs.get("event_loop") or request.getfixturevalue("event_loop")
+                    hass_gen = hass_func(**kwargs)
+                    hass_obj = loop.run_until_complete(hass_gen.__anext__())  # type: ignore[arg-type]
+                    try:
+                        yield hass_obj
+                    finally:
+                        try:
+                            loop.run_until_complete(hass_gen.aclose())  # type: ignore[arg-type]
+                        except (RuntimeError, AttributeError, StopAsyncIteration):  # pragma: no cover - defensive
+                            pass
+
+            else:
+
+                @async_fixture(name="hass")
+                async def hass_override(request: pytest.FixtureRequest) -> AsyncGenerator[HomeAssistant, None]:
+                    kwargs = {name: request.getfixturevalue(name) for name in hass_params}
+                    hass_gen = hass_func(**kwargs)
+                    try:
+                        hass_obj = await hass_gen.__anext__()
+                        yield hass_obj
+                    finally:
+                        try:
+                            await hass_gen.aclose()
+                        except (RuntimeError, AttributeError, StopAsyncIteration):  # pragma: no cover - defensive
+                            pass
+
+        elif inspect.iscoroutinefunction(hass_func):
+
+            if async_fixture is pytest.fixture:
+
+                @pytest.fixture(name="hass")
+                def hass_override(request: pytest.FixtureRequest) -> HomeAssistant:
+                    kwargs = {name: request.getfixturevalue(name) for name in hass_params}
+                    loop = kwargs.get("event_loop")
+                    if loop is None:  # pragma: no cover - defensive fallback
+                        loop = request.getfixturevalue("event_loop")
+                    return loop.run_until_complete(hass_func(**kwargs))  # type: ignore[arg-type]
+
+            else:
+
+                @async_fixture(name="hass")
+                async def hass_override(request: pytest.FixtureRequest) -> HomeAssistant:
+                    kwargs = {name: request.getfixturevalue(name) for name in hass_params}
+                    return await hass_func(**kwargs)
+
+        elif inspect.isgeneratorfunction(hass_func):
+
+            @pytest.fixture(name="hass")
+            def hass_override(request: pytest.FixtureRequest) -> Generator[HomeAssistant, None, None]:
+                kwargs = {name: request.getfixturevalue(name) for name in hass_params}
+                hass_gen = hass_func(**kwargs)
+                try:
+                    hass_obj = next(hass_gen)
+                    yield hass_obj
+                finally:
+                    try:
+                        next(hass_gen)
+                    except StopIteration:
+                        pass
+
+        else:
+
+            @pytest.fixture(name="hass")
+            def hass_override(request: pytest.FixtureRequest) -> HomeAssistant:
+                kwargs = {name: request.getfixturevalue(name) for name in hass_params}
+                return hass_func(**kwargs)
 
 
 @pytest.fixture
