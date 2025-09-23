@@ -6,8 +6,12 @@ import asyncio
 import inspect
 from dataclasses import dataclass
 from importlib import import_module
-from typing import Any, Callable, Dict, Iterable, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional
 from uuid import uuid4
+
+if TYPE_CHECKING:
+    from .core import HomeAssistant
+
 
 HANDLERS: Dict[str, type["ConfigFlow"]] = {}
 
@@ -114,13 +118,13 @@ class ConfigEntry:
         self.hass = None
         self.state = ConfigEntryState.NOT_LOADED
         self._on_unload: List[Callable[[], Any]] = []
-        self._update_listeners: List[Callable[["HomeAssistant", "ConfigEntry"], Any]] = []
+        self._update_listeners: List[Callable[[HomeAssistant, ConfigEntry], Any]] = []
 
-    def add_to_hass(self, hass: "HomeAssistant") -> None:
+    def add_to_hass(self, hass: HomeAssistant) -> None:
         self.hass = hass
         hass.config_entries._add(self)
 
-    def add_update_listener(self, listener: Callable[["HomeAssistant", "ConfigEntry"], Any]) -> Callable[[], None]:
+    def add_update_listener(self, listener: Callable[[HomeAssistant, ConfigEntry], Any]) -> Callable[[], None]:
         self._update_listeners.append(listener)
 
         def _remove() -> None:
@@ -140,7 +144,7 @@ class ConfigEntry:
 
 
 class ConfigEntriesFlowManager:
-    def __init__(self, hass: "HomeAssistant") -> None:
+    def __init__(self, hass: HomeAssistant) -> None:
         self.hass = hass
         self._flows: Dict[str, Dict[str, Any]] = {}
 
@@ -184,7 +188,7 @@ class ConfigEntriesFlowManager:
 
 
 class ConfigEntries:
-    def __init__(self, hass: "HomeAssistant") -> None:
+    def __init__(self, hass: HomeAssistant) -> None:
         self.hass = hass
         self._entries: Dict[str, ConfigEntry] = {}
         self.flow = ConfigEntriesFlowManager(hass)
