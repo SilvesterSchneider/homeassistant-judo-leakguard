@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 from collections.abc import AsyncGenerator, Generator
 from copy import deepcopy
 import importlib
@@ -22,7 +21,6 @@ from homeassistant.const import (
     CONF_PROTOCOL,
     CONF_USERNAME,
 )
-from homeassistant.config_entries import ConfigEntries
 from homeassistant.core import HomeAssistant
 
 from custom_components.judo_leakguard.const import (
@@ -39,28 +37,6 @@ except ModuleNotFoundError:
     pytest_plugins = ("pytest_homeassistant_custom_component",)
 else:
     pytest_plugins = ("pytest_homeassistant_custom_component.plugin",)
-
-
-@pytest.fixture
-def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    try:
-        yield loop
-    finally:
-        loop.run_until_complete(loop.shutdown_asyncgens())
-        loop.close()
-        asyncio.set_event_loop(None)
-
-
-@pytest.fixture
-def hass(event_loop: asyncio.AbstractEventLoop) -> Generator[HomeAssistant, None, None]:
-    hass = HomeAssistant(event_loop)
-    ConfigEntries(hass)
-    try:
-        yield hass
-    finally:
-        event_loop.run_until_complete(hass.async_stop())
 
 
 @pytest.fixture
