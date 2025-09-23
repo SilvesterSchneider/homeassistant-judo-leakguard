@@ -1,11 +1,16 @@
 from __future__ import annotations
 
-from collections.abc import Generator
+from collections.abc import AsyncGenerator, Generator
 from copy import deepcopy
 import importlib
 from typing import Any
 
 import pytest
+
+try:  # pragma: no cover - fallback for limited test env
+    from pytest_asyncio import fixture as async_fixture
+except ModuleNotFoundError:  # pragma: no cover - fallback for limited test env
+    async_fixture = pytest.fixture
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -95,32 +100,66 @@ def mock_judo_api(monkeypatch: pytest.MonkeyPatch) -> Generator[tuple[type[MockJ
     _PatchedMockApi.default_payload = fresh_payload()  # type: ignore[attr-defined]
 
 
-@pytest.fixture
-def setup_integration(
-    hass: HomeAssistant,
-    mock_config_entry: MockConfigEntry,
-    mock_judo_api: tuple[type[MockJudoApi], list[MockJudoApi]],
-) -> Generator[dict[str, Any], None, None]:
-    api_class, instances = mock_judo_api
-    api_class.default_payload = fresh_payload()
-    mock_config_entry.add_to_hass(hass)
-    loop = hass.loop
-    assert loop.run_until_complete(hass.config_entries.async_setup(mock_config_entry.entry_id))
-    loop.run_until_complete(hass.async_block_till_done())
+if async_fixture is pytest.fixture:
 
-    api_instance = instances[0]
-    data = hass.data[DOMAIN][mock_config_entry.entry_id]
-    coordinator = data["coordinator"]
+    @pytest.fixture
+    def setup_integration(
+        hass: HomeAssistant,
+        mock_config_entry: MockConfigEntry,
+        mock_judo_api: tuple[type[MockJudoApi], list[MockJudoApi]],
+    ) -> Generator[dict[str, Any], None, None]:
+        api_class, instances = mock_judo_api
+        api_class.default_payload = fresh_payload()
+        mock_config_entry.add_to_hass(hass)
+        loop = hass.loop
+        assert loop.run_until_complete(
+            hass.config_entries.async_setup(mock_config_entry.entry_id)
+        )
+        loop.run_until_complete(hass.async_block_till_done())
 
-    yield {
-        "entry": mock_config_entry,
-        "api": api_instance,
-        "coordinator": coordinator,
-        "data": data,
-    }
+        api_instance = instances[0]
+        data = hass.data[DOMAIN][mock_config_entry.entry_id]
+        coordinator = data["coordinator"]
 
-    assert loop.run_until_complete(hass.config_entries.async_unload(mock_config_entry.entry_id))
-    loop.run_until_complete(hass.async_block_till_done())
+        yield {
+            "entry": mock_config_entry,
+            "api": api_instance,
+            "coordinator": coordinator,
+            "data": data,
+        }
+
+        assert loop.run_until_complete(
+            hass.config_entries.async_unload(mock_config_entry.entry_id)
+        )
+        loop.run_until_complete(hass.async_block_till_done())
+
+else:
+
+    @async_fixture
+    async def setup_integration(
+        hass: HomeAssistant,
+        mock_config_entry: MockConfigEntry,
+        mock_judo_api: tuple[type[MockJudoApi], list[MockJudoApi]],
+    ) -> AsyncGenerator[dict[str, Any], None]:
+        api_class, instances = mock_judo_api
+        api_class.default_payload = fresh_payload()
+        mock_config_entry.add_to_hass(hass)
+        assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
+        await hass.async_block_till_done()
+
+        api_instance = instances[0]
+        data = hass.data[DOMAIN][mock_config_entry.entry_id]
+        coordinator = data["coordinator"]
+
+        yield {
+            "entry": mock_config_entry,
+            "api": api_instance,
+            "coordinator": coordinator,
+            "data": data,
+        }
+
+        assert await hass.config_entries.async_unload(mock_config_entry.entry_id)
+        await hass.async_block_till_done()
 
 
 @pytest.fixture
