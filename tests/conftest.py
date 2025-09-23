@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from collections.abc import Generator
 from copy import deepcopy
+import importlib
 from typing import Any
 
 import pytest
+
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from homeassistant.const import (
@@ -24,7 +26,12 @@ from custom_components.judo_leakguard.const import (
 
 from .helpers import MockJudoApi, SERIAL, fresh_payload
 
-pytest_plugins = ("pytest_homeassistant_custom_component.plugin",)
+try:
+    importlib.import_module("pytest_homeassistant_custom_component.plugin")
+except ModuleNotFoundError:
+    pytest_plugins = ("pytest_homeassistant_custom_component",)
+else:
+    pytest_plugins = ("pytest_homeassistant_custom_component.plugin",)
 
 
 @pytest.fixture
