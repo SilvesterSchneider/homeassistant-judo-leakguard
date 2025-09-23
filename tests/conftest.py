@@ -35,7 +35,7 @@ else:
 
 
 @pytest.fixture
-def mock_config_entry(hass: HomeAssistant) -> MockConfigEntry:
+def mock_config_entry() -> MockConfigEntry:
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="Judo Leakguard",
@@ -50,7 +50,6 @@ def mock_config_entry(hass: HomeAssistant) -> MockConfigEntry:
         },
         unique_id=f"judo_{SERIAL}",
     )
-    entry.add_to_hass(hass)
     return entry
 
 
@@ -104,6 +103,7 @@ def setup_integration(
 ) -> Generator[dict[str, Any], None, None]:
     api_class, instances = mock_judo_api
     api_class.default_payload = fresh_payload()
+    mock_config_entry.add_to_hass(hass)
     loop = hass.loop
     assert loop.run_until_complete(hass.config_entries.async_setup(mock_config_entry.entry_id))
     loop.run_until_complete(hass.async_block_till_done())
