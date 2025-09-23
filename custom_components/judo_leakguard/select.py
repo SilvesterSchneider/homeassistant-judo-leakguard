@@ -1,12 +1,14 @@
 from __future__ import annotations
 from homeassistant.components.select import SelectEntity
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .api import JudoClient
 from .const import DOMAIN
 from .helpers import build_device_info, build_unique_id
 
-VAC_OPTIONS = ["off","U1","U2","U3"]
+VAC_OPTIONS = ["off", "u1", "u2", "u3"]
+MICROLEAK_OPTIONS = ["off", "notify", "notify_close"]
 
 async def async_setup_entry(hass, entry, add_entities):
     data = hass.data[DOMAIN][entry.entry_id]
@@ -16,6 +18,7 @@ async def async_setup_entry(hass, entry, add_entities):
 
 class _Base(CoordinatorEntity, SelectEntity):
     _attr_has_entity_name = True
+    _attr_entity_category = EntityCategory.CONFIG
     def __init__(self, coordinator, client: JudoClient, entry, key: str):
         super().__init__(coordinator)
         self._client = client
@@ -32,24 +35,40 @@ class VacationType(_Base):
     @property
     def current_option(self):
         value = (self.coordinator.data or {}).get("vacation_type")
-        if value is None or not (0 <= int(value) < len(self.options)):
+        try:
+            idx = int(value)
+        except (TypeError, ValueError):
             return None
-        return self.options[int(value)]
+        if 0 <= idx < len(self.options):
+            return self.options[idx]
+        return None
+
     async def async_select_option(self, option: str) -> None:
-        await self._client.write_vacation_type(VAC_OPTIONS.index(option))
+        option_key = option.lower()
+        if option_key not in VAC_OPTIONS:
+            raise ValueError(f"Unsupported vacation option: {option}")
+        await self._client.write_vacation_type(VAC_OPTIONS.index(option_key))
         await self.coordinator.async_request_refresh()
 
 class MicroLeakMode(_Base):
     _attr_translation_key = "microleak_mode_set"
-    _attr_options = ["off","notify","notify_close"]
+    _attr_options = MICROLEAK_OPTIONS
     def __init__(self, coordinator, client: JudoClient, entry):
         super().__init__(coordinator, client, entry, "microleak_mode")
     @property
     def current_option(self):
         value = (self.coordinator.data or {}).get("microleak_mode")
-        mapping = {0: "off", 1: "notify", 2: "notify_close"}
-        return mapping.get(int(value)) if value is not None else None
+        try:
+            idx = int(value)
+        except (TypeError, ValueError):
+            return None
+        if 0 <= idx < len(self.options):
+            return self.options[idx]
+        return None
+
     async def async_select_option(self, option: str) -> None:
-        mapping = {"off":0, "notify":1, "notify_close":2}
-        await self._client.write_microleak_mode(mapping[option])
+        option_key = option.lower()
+        if option_key not in MICROLEAK_OPTIONS:
+            raise ValueError(f"Unsupported microleak option: {option}")
+        await self._client.write_microleak_mode(MICROLEAK_OPTIONS.index(option_key))
         await self.coordinator.async_request_refresh()

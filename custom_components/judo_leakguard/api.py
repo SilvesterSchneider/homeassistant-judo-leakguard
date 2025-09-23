@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, Mapping, Optional, Sequence
 
 import aiohttp
-from homeassistant.util.dt import utcnow
+from homeassistant.util.dt import DEFAULT_TIME_ZONE, utcnow
 
 from .helpers import fromU16BE, fromU32BE, toU16BE, toU32BE, toU8
 
@@ -59,9 +59,20 @@ class DeviceClock:
 
     def as_datetime(self) -> Optional[datetime]:
         try:
-            return datetime(self.year, max(self.month, 1), max(self.day, 1), self.hour, self.minute, self.second)
+            naive = datetime(
+                self.year,
+                max(self.month, 1),
+                max(self.day, 1),
+                self.hour,
+                self.minute,
+                self.second,
+            )
         except ValueError:
             return None
+        tz = DEFAULT_TIME_ZONE
+        if hasattr(tz, "localize"):
+            return tz.localize(naive)  # type: ignore[attr-defined]
+        return naive.replace(tzinfo=tz)
 
     def to_dict(self) -> Dict[str, Any]:
         data: Dict[str, Any] = {
@@ -659,6 +670,11 @@ class JudoClient:
         return values
 
 
+DEVICE_TYPE_NAMES: Dict[int, str] = {
+    0x44: "ZEWA i-SAFE",
+}
+
+
 class JudoLeakguardApi(JudoClient):
     """High-level API that also fetches JSON endpoints for sensor data."""
 
@@ -859,9 +875,11 @@ class JudoLeakguardApi(JudoClient):
         except JudoApiError as exc:
             _LOGGER.debug("Failed to read learn status: %s", exc)
 
+        device_clock: Optional[DeviceClock] = None
         try:
             device_time = await self.read_device_time()
             if device_time is not None:
+                device_clock = device_time
                 data.update(device_time.to_dict())
         except (JudoAuthenticationError, JudoConnectionError):
             raise
@@ -871,7 +889,11 @@ class JudoLeakguardApi(JudoClient):
         try:
             device_type = await self.read_device_type()
             if device_type is not None:
-                data["device_type"] = device_type
+                code_hex = f"0x{device_type:02X}"
+                label = DEVICE_TYPE_NAMES.get(device_type, code_hex)
+                data["device_type_code"] = device_type
+                data["device_type_hex"] = code_hex
+                data["device_type_label"] = label
         except (JudoAuthenticationError, JudoConnectionError):
             raise
         except JudoApiError as exc:
@@ -913,6 +935,59 @@ class JudoLeakguardApi(JudoClient):
             raise
         except JudoApiError as exc:
             _LOGGER.debug("Failed to read total water: %s", exc)
+
+        reference_dt: datetime | None = None
+        if device_clock is not None:
+            reference_dt = device_clock.as_datetime()
+        if reference_dt is None:
+            reference_dt = utcnow()
+
+        try:
+            day_values = await self.read_day_stats(reference_dt.day, reference_dt.month, reference_dt.year)
+            if day_values:
+                day_total = sum(day_values)
+                data["daily_usage_l"] = day_total
+                data["daily_usage_m3"] = day_total / 1000.0
+        except (JudoAuthenticationError, JudoConnectionError):
+            raise
+        except JudoApiError as exc:
+            _LOGGER.debug("Failed to read daily statistics: %s", exc)
+
+        try:
+            iso = reference_dt.isocalendar()
+            week_year = getattr(iso, "year", iso[0])
+            week_no = getattr(iso, "week", iso[1])
+            week_values = await self.read_week_stats(week_no, week_year)
+            if week_values:
+                week_total = sum(week_values)
+                data["weekly_usage_l"] = week_total
+                data["weekly_usage_m3"] = week_total / 1000.0
+        except (JudoAuthenticationError, JudoConnectionError):
+            raise
+        except JudoApiError as exc:
+            _LOGGER.debug("Failed to read weekly statistics: %s", exc)
+
+        try:
+            month_values = await self.read_month_stats(reference_dt.month, reference_dt.year)
+            if month_values:
+                month_total = sum(month_values)
+                data["monthly_usage_l"] = month_total
+                data["monthly_usage_m3"] = month_total / 1000.0
+        except (JudoAuthenticationError, JudoConnectionError):
+            raise
+        except JudoApiError as exc:
+            _LOGGER.debug("Failed to read monthly statistics: %s", exc)
+
+        try:
+            year_values = await self.read_year_stats(reference_dt.year)
+            if year_values:
+                year_total = sum(year_values)
+                data["yearly_usage_l"] = year_total
+                data["yearly_usage_m3"] = year_total / 1000.0
+        except (JudoAuthenticationError, JudoConnectionError):
+            raise
+        except JudoApiError as exc:
+            _LOGGER.debug("Failed to read yearly statistics: %s", exc)
 
         return data
 

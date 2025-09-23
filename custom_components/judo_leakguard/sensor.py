@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any
 
 import logging
 
@@ -11,18 +11,19 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
+    PERCENTAGE,
     UnitOfPressure,
-    UnitOfVolume,
     UnitOfTemperature,
     UnitOfTime,
+    UnitOfVolume,
     UnitOfVolumeFlowRate,
-    PERCENTAGE,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .helpers import build_device_info, build_unique_id, first_present
 
@@ -34,7 +35,6 @@ DOMAIN = "judo_leakguard"
 @dataclass(frozen=True)
 class JudoSensorEntityDescription(SensorEntityDescription):
     paths: tuple[str, ...] = tuple()
-    state_class: Optional[SensorStateClass] = None
 
 
 SENSOR_DESCRIPTIONS: tuple[JudoSensorEntityDescription, ...] = (
@@ -49,7 +49,8 @@ SENSOR_DESCRIPTIONS: tuple[JudoSensorEntityDescription, ...] = (
         key="water_flow_l_min",
         translation_key="water_flow",
         paths=("water_flow_l_min", "flow_l_min", "sensors.flow", "live.flow"),
-        native_unit_of_measurement="L/min",
+        native_unit_of_measurement=UnitOfVolumeFlowRate.LITERS_PER_MINUTE,
+        device_class=SensorDeviceClass.WATER,
         state_class=SensorStateClass.MEASUREMENT,
     ),
     JudoSensorEntityDescription(
@@ -57,6 +58,7 @@ SENSOR_DESCRIPTIONS: tuple[JudoSensorEntityDescription, ...] = (
         translation_key="total_water",
         paths=("total_water_m3", "total_m3", "counters.total_water_m3"),
         native_unit_of_measurement=UnitOfVolume.CUBIC_METERS,
+        device_class=SensorDeviceClass.WATER,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
     JudoSensorEntityDescription(
@@ -64,6 +66,7 @@ SENSOR_DESCRIPTIONS: tuple[JudoSensorEntityDescription, ...] = (
         translation_key="total_water_liters",
         paths=("total_water_l",),
         native_unit_of_measurement=UnitOfVolume.LITERS,
+        device_class=SensorDeviceClass.WATER,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
     JudoSensorEntityDescription(
@@ -93,6 +96,7 @@ SENSOR_DESCRIPTIONS: tuple[JudoSensorEntityDescription, ...] = (
         paths=("sleep_hours",),
         native_unit_of_measurement=UnitOfTime.HOURS,
         state_class=SensorStateClass.MEASUREMENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     JudoSensorEntityDescription(
         key="absence_flow_l_h",
@@ -100,6 +104,7 @@ SENSOR_DESCRIPTIONS: tuple[JudoSensorEntityDescription, ...] = (
         paths=("absence_flow_l_h",),
         native_unit_of_measurement=UnitOfVolumeFlowRate.LITERS_PER_HOUR,
         state_class=SensorStateClass.MEASUREMENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     JudoSensorEntityDescription(
         key="absence_volume_l",
@@ -107,6 +112,7 @@ SENSOR_DESCRIPTIONS: tuple[JudoSensorEntityDescription, ...] = (
         paths=("absence_volume_l",),
         native_unit_of_measurement=UnitOfVolume.LITERS,
         state_class=SensorStateClass.MEASUREMENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     JudoSensorEntityDescription(
         key="absence_duration_min",
@@ -114,19 +120,80 @@ SENSOR_DESCRIPTIONS: tuple[JudoSensorEntityDescription, ...] = (
         paths=("absence_duration_min",),
         native_unit_of_measurement=UnitOfTime.MINUTES,
         state_class=SensorStateClass.MEASUREMENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     JudoSensorEntityDescription(
         key="learn_remaining_l",
         translation_key="learning_remaining_water",
         paths=("learn_remaining_l",),
         native_unit_of_measurement=UnitOfVolume.LITERS,
+        device_class=SensorDeviceClass.WATER,
         state_class=SensorStateClass.MEASUREMENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     JudoSensorEntityDescription(
         key="installation_datetime",
         translation_key="installation_date",
         paths=("installation_datetime",),
         device_class=SensorDeviceClass.TIMESTAMP,
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    JudoSensorEntityDescription(
+        key="device_time",
+        translation_key="device_time",
+        paths=("device_time_datetime",),
+        device_class=SensorDeviceClass.TIMESTAMP,
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    JudoSensorEntityDescription(
+        key="device_type",
+        translation_key="device_type",
+        paths=("device_type_label", "device_type_hex", "device_type_code"),
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    JudoSensorEntityDescription(
+        key="device_serial",
+        translation_key="device_serial",
+        paths=("serial", "device.serial", "meta.serial"),
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    JudoSensorEntityDescription(
+        key="device_firmware",
+        translation_key="device_firmware",
+        paths=("firmware", "sw_version", "meta.firmware"),
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    JudoSensorEntityDescription(
+        key="daily_usage_l",
+        translation_key="daily_usage",
+        paths=("daily_usage_l",),
+        native_unit_of_measurement=UnitOfVolume.LITERS,
+        device_class=SensorDeviceClass.WATER,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    JudoSensorEntityDescription(
+        key="weekly_usage_l",
+        translation_key="weekly_usage",
+        paths=("weekly_usage_l",),
+        native_unit_of_measurement=UnitOfVolume.LITERS,
+        device_class=SensorDeviceClass.WATER,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    JudoSensorEntityDescription(
+        key="monthly_usage_l",
+        translation_key="monthly_usage",
+        paths=("monthly_usage_l",),
+        native_unit_of_measurement=UnitOfVolume.LITERS,
+        device_class=SensorDeviceClass.WATER,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    JudoSensorEntityDescription(
+        key="yearly_usage_l",
+        translation_key="yearly_usage",
+        paths=("yearly_usage_l",),
+        native_unit_of_measurement=UnitOfVolume.LITERS,
+        device_class=SensorDeviceClass.WATER,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
 )
 
