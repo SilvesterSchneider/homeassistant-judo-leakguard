@@ -145,7 +145,6 @@ class JudoLeakguardOptionsFlow(config_entries.OptionsFlow):
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
-        defaults = dict(self.config_entry.options)
         schema = vol.Schema(
             {
                 # Placeholder for future options, e.g. scan interval.

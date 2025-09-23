@@ -10,7 +10,7 @@ from typing import Any, Dict, Mapping, Optional, Sequence
 import aiohttp
 from homeassistant.util.dt import DEFAULT_TIME_ZONE, utcnow
 
-from .helpers import fromU16BE, fromU32BE, toU16BE, toU32BE, toU8
+from .helpers import fromU16BE, fromU32BE, toU16BE, toU8
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -361,6 +361,15 @@ class JudoClient:
     ) -> Dict[str, Any]:
         cmd_hex = self._format_command(command)
         payload_hex = self._encode_payload(payload)
+        if len(payload_hex) // 2 > 80:
+            _LOGGER.error(
+                "Payload for command %s exceeds 80 bytes (%s bytes)",
+                cmd_hex,
+                len(payload_hex) // 2,
+            )
+            raise JudoApiError(
+                f"Payload for command {cmd_hex} exceeds 80 bytes"
+            )
         if self._send_as_query and payload_hex:
             path = f"/api/rest/{cmd_hex}?data={payload_hex}"
         else:
