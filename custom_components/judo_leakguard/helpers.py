@@ -2,6 +2,10 @@ from __future__ import annotations
 
 from typing import Any, Iterable
 
+from homeassistant.helpers.entity import DeviceInfo
+
+from .const import DOMAIN
+
 U8_MAX = 0xFF
 U16_MAX = 0xFFFF
 U32_MAX = 0xFFFFFFFF
@@ -51,11 +55,6 @@ def fromU32BE(data: bytes, offset: int = 0) -> int:
     if end > len(data):
         raise ValueError("Not enough data for U32")
     return int.from_bytes(data[offset:end], "big", signed=False)
-
-from homeassistant.helpers.entity import DeviceInfo
-
-from .const import DOMAIN
-
 
 def get_nested(data: dict[str, Any] | None, path: str, default: Any | None = None) -> Any | None:
     """Return a nested value from ``data`` following ``path`` (dot separated)."""

@@ -37,7 +37,7 @@ jobs:
           if python -c "import importlib; importlib.import_module('ruff')" 2>/dev/null; then ruff check .; else echo "ruff not installed, skipping"; fi
 
       - name: Run tests
-        run: pytest -q --maxfail=1 --disable-warnings
+        run: pytest --maxfail=1 --disable-warnings --cov=custom_components/judo_leakguard --cov-report=term-missing --cov-fail-under=85
 
       - name: Upload coverage (optional)
         if: always()

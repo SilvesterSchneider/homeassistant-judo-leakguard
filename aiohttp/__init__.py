@@ -4,9 +4,14 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Optional, TYPE_CHECKING
 
 from .typedefs import LooseHeaders
+
+if TYPE_CHECKING:  # pragma: no cover - imported for typing only
+    from aioresponses import aioresponses as AioResponses
+else:
+    AioResponses = Any  # type: ignore[assignment]
 
 __all__ = [
     "BasicAuth",
@@ -76,19 +81,19 @@ class _MockSpec:
 
 class _MockRegistry:
     def __init__(self) -> None:
-        self._mocker: Optional["AioResponses"] = None
+        self._mocker: Optional[AioResponses] = None
 
-    def set(self, mocker: Optional["AioResponses"]) -> None:
+    def set(self, mocker: Optional[AioResponses]) -> None:
         self._mocker = mocker
 
-    def get(self) -> Optional["AioResponses"]:
+    def get(self) -> Optional[AioResponses]:
         return self._mocker
 
 
 _registry = _MockRegistry()
 
 
-def register_mocker(mocker: Optional["AioResponses"]) -> None:
+def register_mocker(mocker: Optional[AioResponses]) -> None:
     """Register the active aioresponses mocker."""
 
     _registry.set(mocker)
