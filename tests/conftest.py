@@ -71,6 +71,16 @@ def mock_judo_api(monkeypatch: pytest.MonkeyPatch) -> Generator[tuple[type[MockJ
         "custom_components.judo_leakguard.api.JudoLeakguardApi",
         _PatchedMockApi,
     )
+    monkeypatch.setattr(
+        "custom_components.judo_leakguard.JudoLeakguardApi",
+        _PatchedMockApi,
+        raising=False,
+    )
+    monkeypatch.setattr(
+        "custom_components.judo_leakguard.config_flow.JudoLeakguardApi",
+        _PatchedMockApi,
+        raising=False,
+    )
 
     yield _PatchedMockApi, instances
 
@@ -80,15 +90,16 @@ def mock_judo_api(monkeypatch: pytest.MonkeyPatch) -> Generator[tuple[type[MockJ
 
 
 @pytest.fixture
-async def setup_integration(
+def setup_integration(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_judo_api: tuple[type[MockJudoApi], list[MockJudoApi]],
 ) -> Generator[dict[str, Any], None, None]:
     api_class, instances = mock_judo_api
-    api_class.default_payload = fresh_payload()  # ensure fresh data per test
-    assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
-    await hass.async_block_till_done()
+    api_class.default_payload = fresh_payload()
+    loop = hass.loop
+    assert loop.run_until_complete(hass.config_entries.async_setup(mock_config_entry.entry_id))
+    loop.run_until_complete(hass.async_block_till_done())
 
     api_instance = instances[0]
     data = hass.data[DOMAIN][mock_config_entry.entry_id]
@@ -101,8 +112,8 @@ async def setup_integration(
         "data": data,
     }
 
-    assert await hass.config_entries.async_unload(mock_config_entry.entry_id)
-    await hass.async_block_till_done()
+    assert loop.run_until_complete(hass.config_entries.async_unload(mock_config_entry.entry_id))
+    loop.run_until_complete(hass.async_block_till_done())
 
 
 @pytest.fixture
