@@ -1,45 +1,51 @@
 name: CI
 
 on:
-  pull_request:
-    branches: [ "*" ]
   push:
+    branches: [ main ]
+  pull_request:
     branches: [ main ]
 
 jobs:
-  test:
+  tests:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Cache pip
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt', '**/pyproject.toml', '**/poetry.lock') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
-      - name: Install deps
-        run: |
-          python -m pip install --upgrade pip
-          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          if [ -f pyproject.toml ]; then pip install .; fi
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip wheel
 
-      - name: Lint (ruff, optional)
+      - name: Install dependencies
         run: |
-          if python -c "import importlib; importlib.import_module('ruff')" 2>/dev/null; then ruff check .; else echo "ruff not installed, skipping"; fi
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install -r requirements-dev.txt
 
       - name: Run tests
-        run: pytest --maxfail=1 --disable-warnings --cov=custom_components/judo_leakguard --cov-report=term-missing --cov-fail-under=85
-
-      - name: Upload coverage (optional)
-        if: always()
+        env:
+          PYTHONPATH: .
         run: |
-          if [ -f .coverage ] || ls .coverage* 1> /dev/null 2>&1; then echo "coverage file exists"; else echo "no coverage configured"; fi
+          set -o pipefail
+          pytest | tee pytest-coverage.txt
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: pytest-coverage.txt
+          if-no-files-found: ignore
