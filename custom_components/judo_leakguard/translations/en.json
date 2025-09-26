@@ -1,5 +1,5 @@
 {
-  "title": "Judo Leakguard",
+  "title": "JUDO Leakguard",
   "config": {
     "step": {
       "user": {
@@ -24,99 +24,33 @@
   },
   "entity": {
     "sensor": {
-      "pressure": {
-        "name": "Pressure"
-      },
-      "water_flow": {
-        "name": "Water flow"
-      },
-      "total_water": {
-        "name": "Total water"
-      },
-      "total_water_liters": {
-        "name": "Total water (L)"
-      },
-      "device_temperature": {
-        "name": "Device temperature"
-      },
-      "battery": {
-        "name": "Battery"
-      },
-      "last_update_age": {
-        "name": "Last update age"
-      },
-      "sleep_duration": {
-        "name": "Sleep duration"
-      },
-      "absence_flow_limit": {
-        "name": "Absence flow limit"
-      },
-      "absence_volume_limit": {
-        "name": "Absence volume limit"
-      },
-      "absence_duration_limit": {
-        "name": "Absence duration limit"
-      },
-      "learning_remaining_water": {
-        "name": "Learning remaining water"
-      },
-      "installation_date": {
-        "name": "Installation date"
-      },
-      "device_time": {
-        "name": "Device time"
-      },
-      "device_type": {
-        "name": "Device type"
-      },
-      "device_serial": {
-        "name": "Serial number"
-      },
-      "device_firmware": {
-        "name": "Firmware version"
-      },
-      "daily_usage": {
-        "name": "Daily water usage"
-      },
-      "weekly_usage": {
-        "name": "Weekly water usage"
-      },
-      "monthly_usage": {
-        "name": "Monthly water usage"
-      },
-      "yearly_usage": {
-        "name": "Yearly water usage"
-      }
+      "pressure": { "name": "Pressure" },
+      "water_flow": { "name": "Water flow" },
+      "total_water": { "name": "Total water" },
+      "total_water_liters": { "name": "Total water (L)" },
+      "device_temperature": { "name": "Device temperature" },
+      "battery": { "name": "Battery" },
+      "last_update_age": { "name": "Last update age" },
+      "sleep_duration": { "name": "Sleep duration" },
+      "absence_flow_limit": { "name": "Absence flow limit" },
+      "absence_volume_limit": { "name": "Absence volume limit" },
+      "absence_duration_limit": { "name": "Absence duration limit" },
+      "learning_remaining_water": { "name": "Remaining learning water" },
+      "installation_date": { "name": "Installation date" }
     },
     "binary_sensor": {
-      "learn_active": {
-        "name": "Learning active"
-      }
+      "learn_active": { "name": "Learning active" }
     },
     "button": {
-      "reset_alarms": {
-        "name": "Reset alarms"
-      },
-      "start_microleak_test": {
-        "name": "Start micro-leak test"
-      },
-      "start_learning": {
-        "name": "Start learning"
-      }
+      "reset_alarms": { "name": "Reset alarms" },
+      "start_microleak_test": { "name": "Start micro-leak test" },
+      "start_learning": { "name": "Start learning" }
     },
     "number": {
-      "sleep_hours": {
-        "name": "Sleep hours"
-      },
-      "absence_flow_limit": {
-        "name": "Absence flow limit"
-      },
-      "absence_volume_limit": {
-        "name": "Absence volume limit"
-      },
-      "absence_duration_limit": {
-        "name": "Absence duration limit"
-      }
+      "sleep_hours": { "name": "Sleep hours" },
+      "absence_flow_limit": { "name": "Absence flow limit" },
+      "absence_volume_limit": { "name": "Absence volume limit" },
+      "absence_duration_limit": { "name": "Absence duration limit" }
     },
     "select": {
       "vacation_type": {
@@ -129,7 +63,7 @@
         }
       },
       "microleak_mode_set": {
-        "name": "Micro-leak mode (set)",
+        "name": "Micro-leak mode",
         "state": {
           "off": "Off",
           "notify": "Notify",
@@ -138,22 +72,14 @@
       }
     },
     "switch": {
-      "valve_open": {
-        "name": "Valve open"
-      },
-      "sleep_mode": {
-        "name": "Sleep mode"
-      },
-      "vacation_mode": {
-        "name": "Vacation mode"
-      }
+      "valve_open": { "name": "Valve open" },
+      "sleep_mode": { "name": "Sleep mode" },
+      "vacation_mode": { "name": "Vacation mode" }
     }
   },
   "options": {
     "step": {
-      "init": {
-        "title": "Options"
-      }
+      "init": { "title": "Options" }
     }
   }
 }

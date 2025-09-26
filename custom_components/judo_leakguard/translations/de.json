@@ -4,123 +4,57 @@
     "step": {
       "user": {
         "title": "Verbindung zur JUDO Leakguard herstellen",
-        "description": "Bitte gib die Verbindungsdaten fÃ¼r dein JUDO Leakguard-GerÃ¤t ein.",
+        "description": "Bitte gib die Verbindungsdaten für dein JUDO Leakguard-Gerät ein.",
         "data": {
           "host": "Host",
           "protocol": "Protokoll",
           "port": "Port",
           "username": "Benutzername",
           "password": "Passwort",
-          "verify_ssl": "SSL-Zertifikate Ã¼berprÃ¼fen",
+          "verify_ssl": "SSL-Zertifikate überprüfen",
           "send_data_as_query": "Befehle als Query-Parameter senden"
         }
       }
     },
     "error": {
-      "invalid_host": "UngÃ¼ltiger Hostname oder ungÃ¼ltige IP-Adresse.",
-      "invalid_auth": "UngÃ¼ltiger Benutzername oder ungÃ¼ltiges Passwort.",
-      "cannot_connect": "Verbindung zum GerÃ¤t fehlgeschlagen. Bitte Einstellungen prÃ¼fen und erneut versuchen."
+      "invalid_host": "Ungültiger Hostname oder ungültige IP-Adresse.",
+      "invalid_auth": "Ungültiger Benutzername oder ungültiges Passwort.",
+      "cannot_connect": "Verbindung zum Gerät fehlgeschlagen. Bitte Einstellungen prüfen und erneut versuchen."
     }
   },
   "entity": {
     "sensor": {
-      "pressure": {
-        "name": "Druck"
-      },
-      "water_flow": {
-        "name": "Wasserdurchfluss"
-      },
-      "total_water": {
-        "name": "Gesamtwasser"
-      },
-      "total_water_liters": {
-        "name": "Gesamtwasser (L)"
-      },
-      "device_temperature": {
-        "name": "GerÃ¤tetemperatur"
-      },
-      "battery": {
-        "name": "Batterie"
-      },
-      "last_update_age": {
-        "name": "Alter der letzten Aktualisierung"
-      },
-      "sleep_duration": {
-        "name": "Ruhedauer"
-      },
-      "absence_flow_limit": {
-        "name": "Abwesenheits-Durchflussgrenze"
-      },
-      "absence_volume_limit": {
-        "name": "Abwesenheits-Volumengrenze"
-      },
-      "absence_duration_limit": {
-        "name": "Abwesenheits-Dauergrenze"
-      },
-      "learning_remaining_water": {
-        "name": "Verbleibende Lernwassermenge"
-      },
-      "installation_date": {
-        "name": "Installationsdatum"
-      },
-      "device_time": {
-        "name": "Gerätezeit"
-      },
-      "device_type": {
-        "name": "Gerätetyp"
-      },
-      "device_serial": {
-        "name": "Seriennummer"
-      },
-      "device_firmware": {
-        "name": "Firmware-Version"
-      },
-      "daily_usage": {
-        "name": "Tagesverbrauch"
-      },
-      "weekly_usage": {
-        "name": "Wochenverbrauch"
-      },
-      "monthly_usage": {
-        "name": "Monatsverbrauch"
-      },
-      "yearly_usage": {
-        "name": "Jahresverbrauch"
-      }
+      "pressure": { "name": "Druck" },
+      "water_flow": { "name": "Wasserdurchfluss" },
+      "total_water": { "name": "Gesamtwasser" },
+      "total_water_liters": { "name": "Gesamtwasser (L)" },
+      "device_temperature": { "name": "Gerätetemperatur" },
+      "battery": { "name": "Batterie" },
+      "last_update_age": { "name": "Alter der letzten Aktualisierung" },
+      "sleep_duration": { "name": "Ruhedauer" },
+      "absence_flow_limit": { "name": "Abwesenheits-Durchflussgrenze" },
+      "absence_volume_limit": { "name": "Abwesenheits-Volumengrenze" },
+      "absence_duration_limit": { "name": "Abwesenheits-Dauergrenze" },
+      "learning_remaining_water": { "name": "Verbleibende Lernwassermenge" },
+      "installation_date": { "name": "Installationsdatum" }
     },
     "binary_sensor": {
-      "learn_active": {
-        "name": "Lernen aktiv"
-      }
+      "learn_active": { "name": "Lernmodus aktiv" }
     },
     "button": {
-      "reset_alarms": {
-        "name": "Alarme zurÃ¼cksetzen"
-      },
-      "start_microleak_test": {
-        "name": "Mikroleck-Test starten"
-      },
-      "start_learning": {
-        "name": "Lernmodus starten"
-      }
+      "reset_alarms": { "name": "Alarme zurücksetzen" },
+      "start_microleak_test": { "name": "Mikrolecktest starten" },
+      "start_learning": { "name": "Lernmodus starten" }
     },
     "number": {
-      "sleep_hours": {
-        "name": "Ruhedauer (Stunden)"
-      },
-      "absence_flow_limit": {
-        "name": "Abwesenheits-Durchflussgrenze"
-      },
-      "absence_volume_limit": {
-        "name": "Abwesenheits-Volumengrenze"
-      },
-      "absence_duration_limit": {
-        "name": "Abwesenheits-Dauergrenze"
-      }
+      "sleep_hours": { "name": "Ruhedauer (Stunden)" },
+      "absence_flow_limit": { "name": "Abwesenheits-Durchflussgrenze" },
+      "absence_volume_limit": { "name": "Abwesenheits-Volumengrenze" },
+      "absence_duration_limit": { "name": "Abwesenheits-Dauergrenze" }
     },
     "select": {
       "vacation_type": {
-        "name": "Urlaubsmodus",
+        "name": "Urlaubstyp",
         "state": {
           "off": "Aus",
           "u1": "U1",
@@ -129,31 +63,23 @@
         }
       },
       "microleak_mode_set": {
-        "name": "Mikroleck-Modus (gesetzt)",
+        "name": "Mikroleck-Modus",
         "state": {
           "off": "Aus",
           "notify": "Nur melden",
-          "notify_close": "Melden und schlieÃŸen"
+          "notify_close": "Melden und schließen"
         }
       }
     },
     "switch": {
-      "valve_open": {
-        "name": "Ventil geÃ¶ffnet"
-      },
-      "sleep_mode": {
-        "name": "Ruhemodus"
-      },
-      "vacation_mode": {
-        "name": "Urlaubsmodus"
-      }
+      "valve_open": { "name": "Ventil geöffnet" },
+      "sleep_mode": { "name": "Ruhemodus" },
+      "vacation_mode": { "name": "Urlaubsmodus" }
     }
   },
   "options": {
     "step": {
-      "init": {
-        "title": "Optionen"
-      }
+      "init": { "title": "Optionen" }
     }
   }
 }
