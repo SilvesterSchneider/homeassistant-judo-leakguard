@@ -1,4 +1,4 @@
-{
+﻿{
   "title": "JUDO Leakguard",
   "config": {
     "step": {
@@ -36,7 +36,15 @@
       "absence_volume_limit": { "name": "Absence volume limit" },
       "absence_duration_limit": { "name": "Absence duration limit" },
       "learning_remaining_water": { "name": "Remaining learning water" },
-      "installation_date": { "name": "Installation date" }
+      "installation_date": { "name": "Installation date" },
+      "device_time": { "name": "Device time" },
+      "device_type": { "name": "Device type" },
+      "device_serial": { "name": "Serial number" },
+      "device_firmware": { "name": "Firmware version" },
+      "daily_usage": { "name": "Daily usage" },
+      "weekly_usage": { "name": "Weekly usage" },
+      "monthly_usage": { "name": "Monthly usage" },
+      "yearly_usage": { "name": "Yearly usage" }
     },
     "binary_sensor": {
       "learn_active": { "name": "Learning active" }
