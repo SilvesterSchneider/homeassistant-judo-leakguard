@@ -1,118 +1,73 @@
 from __future__ import annotations
 
+from unittest.mock import AsyncMock
+
 import pytest
+from homeassistant import data_entry_flow
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 
-from homeassistant import config_entries
-from homeassistant.core import HomeAssistant
-
-from custom_components.judo_leakguard import config_flow
-from custom_components.judo_leakguard.api import JudoAuthenticationError, JudoConnectionError
-from custom_components.judo_leakguard.const import DOMAIN
-
-from .helpers import MockJudoApi
+from custom_components.judo_zewa_isafe.const import CONF_BASE_URL, DOMAIN
+from zewa_client.client import ZewaAuthenticationError, ZewaConnectionError
 
 
-@pytest.mark.usefixtures("mock_judo_api")
-async def test_config_flow_success(hass: HomeAssistant) -> None:
+@pytest.fixture
+async def mock_flow_client(monkeypatch):
+    client = AsyncMock()
+    client.get_device_type.return_value = "ZEWA_I_SAFE"
+    client.get_serial.return_value = 999
+    client.close = AsyncMock()
+    monkeypatch.setattr(
+        "custom_components.judo_zewa_isafe.config_flow.async_create_client",
+        AsyncMock(return_value=client),
+    )
+    return client
+
+
+async def test_successful_config_flow(hass, mock_flow_client):
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
+        DOMAIN,
+        context={"source": "user"},
+        data={CONF_BASE_URL: "example.com", CONF_USERNAME: "u", CONF_PASSWORD: "p"},
     )
-    assert result["type"] == "form"
 
-    user_input = {
-        config_flow.CONF_HOST: "leakguard.local",
-        config_flow.CONF_PROTOCOL: "http",
-        config_flow.CONF_PORT: 8443,
-        config_flow.CONF_USERNAME: "test",
-        config_flow.CONF_PASSWORD: "secret",
-        config_flow.CONF_VERIFY_SSL: True,
-        config_flow.CONF_SEND_AS_QUERY: True,
-    }
-
-    create = await hass.config_entries.flow.async_configure(result["flow_id"], user_input)
-    assert create["type"] == "create_entry"
-    assert create["title"].startswith("Judo Leakguard")
-    assert create["data"] == {
-        config_flow.CONF_HOST: "leakguard.local",
-        config_flow.CONF_PROTOCOL: "http",
-        config_flow.CONF_USERNAME: "test",
-        config_flow.CONF_PASSWORD: "secret",
-        config_flow.CONF_VERIFY_SSL: True,
-        config_flow.CONF_SEND_AS_QUERY: True,
-        config_flow.CONF_PORT: 8443,
-    }
+    assert result["type"] is data_entry_flow.FlowResultType.CREATE_ENTRY
+    assert result["data"][CONF_BASE_URL] == "http://example.com"
+    assert result["title"] == "ZEWA_I_SAFE (999)"
+    mock_flow_client.close.assert_awaited()
 
 
-async def test_config_flow_handles_errors(
-    hass: HomeAssistant,
-    mock_judo_api: tuple[type[MockJudoApi], list[MockJudoApi]],
-) -> None:
-    api_class, _instances = mock_judo_api
+async def test_invalid_auth(hass, monkeypatch):
+    client = AsyncMock()
+    client.get_device_type.side_effect = ZewaAuthenticationError()
+    client.get_serial.return_value = 1
+    client.close = AsyncMock()
+    monkeypatch.setattr(
+        "custom_components.judo_zewa_isafe.config_flow.async_create_client",
+        AsyncMock(return_value=client),
+    )
 
-    api_class.fetch_exception = JudoConnectionError("boom")  # type: ignore[attr-defined]
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
+        DOMAIN,
+        context={"source": "user"},
+        data={CONF_BASE_URL: "http://host", CONF_USERNAME: "u", CONF_PASSWORD: "p"},
     )
-    form = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        {
-            config_flow.CONF_HOST: "test.local",
-            config_flow.CONF_PROTOCOL: "https",
-            config_flow.CONF_USERNAME: "user",
-            config_flow.CONF_PASSWORD: "pw",
-            config_flow.CONF_VERIFY_SSL: True,
-            config_flow.CONF_SEND_AS_QUERY: False,
-            config_flow.CONF_PORT: 0,
-        },
-    )
-    assert form["type"] == "form"
-    assert form["errors"]["base"] == "cannot_connect"
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
+    assert result["errors"]["base_url"] == "invalid_auth"
 
-    api_class.fetch_exception = JudoAuthenticationError("auth")  # type: ignore[attr-defined]
+
+async def test_cannot_connect(hass, monkeypatch):
+    client = AsyncMock()
+    client.get_device_type.side_effect = ZewaConnectionError()
+    client.get_serial.return_value = 1
+    client.close = AsyncMock()
+    monkeypatch.setattr(
+        "custom_components.judo_zewa_isafe.config_flow.async_create_client",
+        AsyncMock(return_value=client),
+    )
+
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
+        DOMAIN,
+        context={"source": "user"},
+        data={CONF_BASE_URL: "http://host", CONF_USERNAME: "u", CONF_PASSWORD: "p"},
     )
-    form = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        {
-            config_flow.CONF_HOST: "test.local",
-            config_flow.CONF_PROTOCOL: "https",
-            config_flow.CONF_USERNAME: "user",
-            config_flow.CONF_PASSWORD: "pw",
-            config_flow.CONF_VERIFY_SSL: True,
-            config_flow.CONF_SEND_AS_QUERY: False,
-            config_flow.CONF_PORT: 0,
-        },
-    )
-    assert form["type"] == "form"
-    assert form["errors"]["base"] == "invalid_auth"
-
-    # Invalid host should be caught before API call
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
-    )
-    form = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        {
-            config_flow.CONF_HOST: "",
-            config_flow.CONF_PROTOCOL: "https",
-            config_flow.CONF_USERNAME: "user",
-            config_flow.CONF_PASSWORD: "pw",
-            config_flow.CONF_VERIFY_SSL: True,
-            config_flow.CONF_SEND_AS_QUERY: False,
-            config_flow.CONF_PORT: 0,
-        },
-    )
-    assert form["type"] == "form"
-    assert form["errors"]["base"] == "invalid_host"
-
-
-async def test_options_flow(mock_config_entry: config_entries.ConfigEntry) -> None:
-    flow = config_flow.JudoLeakguardOptionsFlow(mock_config_entry)
-    result = await flow.async_step_init()
-    assert result["type"] == "form"
-    assert result["step_id"] == "init"
-
-    complete = await flow.async_step_init({})
-    assert complete["type"] == "create_entry"
-    assert complete["data"] == {}
+    assert result["errors"]["base_url"] == "cannot_connect"

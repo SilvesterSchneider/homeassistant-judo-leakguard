@@ -276,6 +276,12 @@ class ZewaClient:
         data = await self._request("/api/rest/6600", expect_len=1)
         return from_u8(data)
 
+    async def get_learn_status(self) -> tuple[bool, int]:
+        """Return whether learning is active and remaining water in litres."""
+
+        data = await self._request("/api/rest/6400", expect_len=3)
+        return bool(from_u8(data, 0)), from_u16be(data, 1)
+
     async def set_vacation_type(self, mode: int) -> None:
         if mode < 0 or mode > 3:
             raise ValueError("vacation type must be between 0 and 3")
