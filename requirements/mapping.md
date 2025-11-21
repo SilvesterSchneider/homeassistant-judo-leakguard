@@ -47,14 +47,14 @@ Es basiert auf der offiziellen API-Spezifikation (PDF) und ist so formuliert, da
 
 ## 4. Geräte-Infos (Sensor / Service)
 
-| API Command      | Hex  | Beschreibung        | Rückgabe               | HA Entity / Service        | Details                       |
-| ---------------- | ---- | ------------------- | ---------------------- | -------------------------- | ----------------------------- | --- |
-| `/api/rest/5900` | 0x59 | Datum/Zeit lesen    | 6 B: DD MM YY HH mm ss | `sensor.device_datetime`   | –                             |
-| `/api/rest/5A00` | 0x5A | Datum/Zeit setzen   | 6 B wie oben           | –                          | `judo_leakguard.set_datetime` | –   |
-| `/api/rest/FF00` | 0xFF | Gerätetyp           | 1 B Typ-ID             | `sensor.device_type`       | z. B. `0x44`                  |
-| `/api/rest/0600` | 0x06 | Seriennummer        | 4 B                    | `sensor.device_serial`     | LSB-first                     |
-| `/api/rest/0100` | 0x01 | Firmware-Version    | 3 B                    | `sensor.device_firmware`   | –                             |
-| `/api/rest/0E00` | 0x0E | Inbetriebnahmedatum | 4 B Unix-Timestamp     | `sensor.installation_date` | –                             |
+| API Command      | Hex  | Beschreibung        | Rückgabe                       | HA Entity / Service        | Details                                                 |
+| ---------------- | ---- | ------------------- | ------------------------------ | -------------------------- | ------------------------------------------------------- | --- |
+| `/api/rest/5900` | 0x59 | Datum/Zeit lesen    | 6 B: DD MM YY HH mm ss         | `sensor.device_datetime`   | Datum und Uhrzeit des Geräts                            |
+| `/api/rest/5A00` | 0x5A | Datum/Zeit setzen   | 6 B wie oben                   | –                          | `judo_leakguard.set_datetime`                           |     |
+| `/api/rest/FF00` | 0xFF | Gerätetyp           | 1 B Typ-ID                     | `sensor.device_type`       | z. B. `0x44` (siehe API-Dokumentation für alle Typ-IDs) |
+| `/api/rest/0600` | 0x06 | Seriennummer        | 4 B                            | `sensor.device_serial`     | LSB-first, z. B. `12 34 56 78` → `0x78563412`           |
+| `/api/rest/0100` | 0x01 | Firmware-Version    | 3 B                            | `sensor.device_firmware`   | –                                                       |
+| `/api/rest/0E00` | 0x0E | Inbetriebnahmedatum | 4 B Unix-Timestamp (LSB-first) | `sensor.installation_date` | –                                                       |
 
 ---
 

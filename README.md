@@ -23,7 +23,7 @@ This repository contains a Home Assistant custom integration for the **Judo ZEWA
 ## File overview
 
 - `custom_components/judo_leakguard/__init__.py`: Registers the integration domain and wires Home Assistant setup/unload hooks. Each config entry is stored under `hass.data[DOMAIN]` so other platform files can later read connection details.
-- `custom_components/judo_leakguard/api.py`: Minimal REST helper for the device. It normalizes the host to HTTPS, attaches HTTP basic auth, applies exponential backoff on HTTP 429 responses, and validates the device type using command `FF00` (expecting response `"44"`).
+- `custom_components/judo_leakguard/api.py`: Typisierte REST-API mit Hex-Helfern für alle dokumentierten Kernbefehle (Geräteinfo, Ventilsteuerung, Sleep-/Vacation-Modi, Limits, Abwesenheitsfenster, Uhr und Statistiken). Sie normalisiert den Host, kümmert sich um Basic Auth sowie Backoff und kapselt sämtliche Endpunkte in klar benannten Methoden.
 - `custom_components/judo_leakguard/config_flow.py`: Implements the config flow UI. Presents host/username/password fields with the username defaulting to the Judo standard user, tests connectivity via the API helper, handles common errors, and enforces one entry per host.
 - `custom_components/judo_leakguard/manifest.json`: Home Assistant manifest declaring the domain, version, config flow availability, and translation files.
 - `custom_components/judo_leakguard/strings.json` and `custom_components/judo_leakguard/translations/en.json`: User-facing strings for the setup form, including error messages for unsupported devices and failed connections.
@@ -38,13 +38,15 @@ This repository contains a Home Assistant custom integration for the **Judo ZEWA
 
 ### `custom_components/judo_leakguard/api.py`
 
-- `DeviceInfo`: Dataclass carrying parsed device information returned by validation requests.
-- `JudoLeakguardApi`: REST client wrapper for the Judo endpoint.
-  - `__init__(host, username, password)`: Normalizes the host (adds `https://` if missing) and stores Basic Auth credentials for all requests.
-  - `async_get_device_info(session)`: Executes the `FF00` command, cleans the response string, and raises `UnsupportedDeviceError` unless the device type is the expected ZEWA i-SAFE identifier (`44`). Returns a `DeviceInfo` instance on success.
-  - `_async_request(session, command)`: Internal helper that performs the GET request with exponential backoff (`2s`, `4s`, `8s`) on HTTP 429. Raises `JudoLeakguardApiError` when the request ultimately fails.
-- `JudoLeakguardApiError`: Base exception for request failures.
-- `UnsupportedDeviceError`: Raised when the device does not report the ZEWA i-SAFE type.
+- `DeviceInfo`, `FirmwareInfo`, `CommissionInfo`, `TotalWaterUsage`, `AbsenceLimits`, `AbsenceWindow`, `ClockState`, `Day/Week/Month/YearStatistics`: Dataclasses that expose parsed responses from the REST API, so callers obtain typed data instead of raw hex strings.
+- `VacationType` und `MicroLeakMode`: `IntEnum`-Hilfen für die zulässigen Werte der zugehörigen Kommandos.
+- `HexCodec`: Bündelt die geforderten `toU16BE/fromU16BE`-Utilities (plus U8/U32) und sorgt für saubere Hex-Serialisierung.
+- `JudoLeakguardApi`: Vollständiger REST-Client für sämtliche Kernbefehle.
+  - Liest Gerätestammdaten (Typ, Seriennummer, Firmware, Inbetriebnahme, Gesamtwasser) und Statistiken (Tag/Woche/Monat/Jahr).
+  - Steuert Ventil, Sleep-/Vacation-Modi, Mikro-Leck-Test und Learn-Mode direkt über eigene Methoden.
+  - Stellt weitere Writer (Abwesenheitslimits, Leak-Preset, Clock, Fenster) bereit und kapselt Validierung der Eingaben.
+  - `_async_request()` und `_async_request_hex()` übernehmen Backoff (2s/4s/8s), `data`-Extraktion aus JSON-Antworten und Fehlerbehandlung.
+- `JudoLeakguardApiError` und `UnsupportedDeviceError`: Gemeinsame Fehlerbasis für alle Kommunikationsprobleme.
 
 ### `custom_components/judo_leakguard/config_flow.py`
 
@@ -55,5 +57,33 @@ This repository contains a Home Assistant custom integration for the **Judo ZEWA
 ### Translations and strings
 
 - The strings in `strings.json` and `translations/en.json` provide the labels and error messages shown in the config flow pop-up. They align with the error codes raised in `config_flow.py` (`cannot_connect`, `unsupported_device`, and `unknown`).
+
+### API usage examples
+
+```python
+from aiohttp import ClientSession
+from custom_components.judo_leakguard.api import (
+    AbsenceLimits,
+    JudoLeakguardApi,
+)
+
+
+async def operate_valve_and_limits() -> None:
+    api = JudoLeakguardApi("http://leakguard.local", "admin", "Connectivity")
+    async with ClientSession() as session:
+        # Ventil schließen/öffnen
+        await api.async_close_valve(session)
+        await api.async_open_valve(session)
+
+        # Sleep konfigurieren (Dauer setzen und sofort starten)
+        await api.async_set_sleep_hours(session, 8)
+        await api.async_start_sleep_mode(session)
+
+        # Abwesenheitslimits schreiben
+        await api.async_write_absence_limits(
+            session,
+            AbsenceLimits(max_flow_lph=300, max_volume_l=200, max_duration_min=45),
+        )
+```
 
 This documentation reflects the current scope of the integration. Future features (entities, services, schedules, statistics) can build on the REST commands listed in the `requirements` folder.
