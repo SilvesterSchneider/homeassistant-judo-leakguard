@@ -4,10 +4,21 @@ This repository contains a Home Assistant custom integration for the **Judo ZEWA
 
 ## Installation
 
-1. Copy the `custom_components/judo_leakguard` folder into your Home Assistant `config/custom_components` directory.
-2. Restart Home Assistant so the integration is discovered.
-3. Navigate to **Settings → Devices & Services → Add Integration**, search for **Judo Leakguard**, and start the flow.
-4. In the setup pop-up, the username field is pre-filled with the Judo standard account (`standard`). Enter your device host and password, submit, and the flow will validate that your unit reports the required ZEWA i-SAFE device type before creating the config entry.
+### Über HACS
+
+1. Füge dieses Repository als benutzerdefiniertes Repository in HACS hinzu.
+2. Installiere die angezeigte Version (HACS orientiert sich am aktuellsten GitHub Release/Tag).
+3. Starte Home Assistant neu, damit die Integration geladen wird.
+4. Navigiere zu **Einstellungen → Geräte & Dienste → Integration hinzufügen**, suche nach **Judo Leakguard** und starte den Flow.
+
+### Manuell
+
+1. Kopiere den Ordner `custom_components/judo_leakguard` in dein Home Assistant-Verzeichnis `config/custom_components`.
+2. Starte Home Assistant neu, damit die Integration gefunden wird.
+3. Navigiere zu **Einstellungen → Geräte & Dienste → Integration hinzufügen**, suche nach **Judo Leakguard** und starte den Flow.
+4. Im Setup-Pop-up ist der Benutzername standardmäßig mit dem Judo-Standardkonto (`standard`) vorbelegt. Gib den Host und das Passwort ein, sende ab und der Flow prüft, ob dein Gerät den benötigten ZEWA i-SAFE-Typ meldet, bevor der Konfigurationseintrag erstellt wird.
+
+> Hinweis: Die Versionsnummer in `custom_components/judo_leakguard/manifest.json` (aktuell `0.6.1`) sollte mit dem GitHub Release übereinstimmen, damit HACS neue Releases korrekt anzeigt.
 
 ## File overview
 
