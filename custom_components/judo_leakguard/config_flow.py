@@ -12,6 +12,7 @@ from homeassistant.data_entry_flow import FlowResult
 
 from . import DOMAIN
 from .api import (
+    DEFAULT_PASSWORD,
     DEFAULT_USERNAME,
     JudoLeakguardApi,
     JudoLeakguardApiError,
@@ -25,7 +26,7 @@ DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_HOST): str,
         vol.Required(CONF_USERNAME, default=DEFAULT_USERNAME): str,
-        vol.Required(CONF_PASSWORD): str,
+        vol.Required(CONF_PASSWORD, default=DEFAULT_PASSWORD): str,
     }
 )
 

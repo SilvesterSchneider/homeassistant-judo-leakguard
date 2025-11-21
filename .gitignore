@@ -3,6 +3,7 @@
 *.pyc
 .DS_Store
 .vscode/
+.venv/
 .idea/
 .env
 venv/

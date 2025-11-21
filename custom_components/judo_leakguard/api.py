@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
+import json
 from typing import Final
 from urllib.parse import urlparse
 
@@ -12,7 +13,8 @@ from aiohttp import BasicAuth, ClientError, ClientSession
 # Deshalb verwenden wir HTTP als Standard und akzeptieren optional eine manuell
 # angegebene HTTPS-URL.
 DEFAULT_SCHEME: Final = "http"
-DEFAULT_USERNAME: Final = "standard"
+DEFAULT_USERNAME: Final = "admin"
+DEFAULT_PASSWORD: Final = "Connectivity"
 DEVICE_TYPE_COMMAND: Final = "FF00"
 EXPECTED_DEVICE_TYPE: Final = "44"
 MAX_ATTEMPTS: Final = 3
@@ -76,8 +78,21 @@ class JudoLeakguardApi:
         falschen Erwartungen an die API.
         """
 
-        text = await self._async_request(session, DEVICE_TYPE_COMMAND)
-        device_type = text.strip().strip("\"").upper()
+        ReturnValueFromAPI = await self._async_request(session, DEVICE_TYPE_COMMAND)
+        #device_type = text.strip().strip("\"").upper()
+
+        # Die API liefert jetzt JSON wie {"data": "44"}. Versuche zuerst zu parsen
+        # und das Feld "data" zu verwenden; fallback auf den rohen Text.
+        try:
+            payload = json.loads(ReturnValueFromAPI)
+            device_type = payload.get("data", "")
+        except (ValueError, TypeError):
+            device_type = ReturnValueFromAPI
+
+        # Normalisiere den Wert (Anführungszeichen/Whitespace entfernen, Großschreibung)
+        device_type = str(device_type).strip().strip('"').upper()
+
+
         if device_type != EXPECTED_DEVICE_TYPE:
             raise UnsupportedDeviceError(
                 f"Unexpected device type '{device_type}', expected '{EXPECTED_DEVICE_TYPE}'"
