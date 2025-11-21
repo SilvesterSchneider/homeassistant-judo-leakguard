@@ -1,6 +1,8 @@
 """Sensor platform for Judo Leakguard."""
 from __future__ import annotations
 
+from datetime import datetime
+
 from homeassistant.components.sensor import (
     SensorEntity,
     SensorDeviceClass,
@@ -109,9 +111,9 @@ class JudoLeakguardDeviceDatetimeSensor(JudoLeakguardEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.TIMESTAMP
 
     @property
-    def native_value(self) -> str:
+    def native_value(self) -> datetime:
         """Return the value."""
-        return self.coordinator.data.clock.timestamp.isoformat()
+        return self.coordinator.data.clock.timestamp
 
 
 class JudoLeakguardDeviceTypeSensor(JudoLeakguardEntity, SensorEntity):
@@ -158,9 +160,9 @@ class JudoLeakguardInstallationDateSensor(JudoLeakguardEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.TIMESTAMP
 
     @property
-    def native_value(self) -> str:
+    def native_value(self) -> datetime:
         """Return the value."""
-        return self.coordinator.data.commission_info.commissioned_at.isoformat()
+        return self.coordinator.data.commission_info.commissioned_at
 
 
 class JudoLeakguardTotalWaterSensor(JudoLeakguardEntity, SensorEntity):
@@ -185,7 +187,7 @@ class JudoLeakguardDailyUsageSensor(JudoLeakguardEntity, SensorEntity):
     _attr_unique_id = "daily_usage"
     _attr_native_unit_of_measurement = UnitOfVolume.LITERS
     _attr_device_class = SensorDeviceClass.WATER
-    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_state_class = SensorStateClass.TOTAL
 
     @property
     def native_value(self) -> int:
@@ -200,7 +202,7 @@ class JudoLeakguardWeeklyUsageSensor(JudoLeakguardEntity, SensorEntity):
     _attr_unique_id = "weekly_usage"
     _attr_native_unit_of_measurement = UnitOfVolume.LITERS
     _attr_device_class = SensorDeviceClass.WATER
-    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_state_class = SensorStateClass.TOTAL
 
     @property
     def native_value(self) -> int:
@@ -215,7 +217,7 @@ class JudoLeakguardMonthlyUsageSensor(JudoLeakguardEntity, SensorEntity):
     _attr_unique_id = "monthly_usage"
     _attr_native_unit_of_measurement = UnitOfVolume.LITERS
     _attr_device_class = SensorDeviceClass.WATER
-    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_state_class = SensorStateClass.TOTAL
 
     @property
     def native_value(self) -> int:
@@ -230,7 +232,7 @@ class JudoLeakguardYearlyUsageSensor(JudoLeakguardEntity, SensorEntity):
     _attr_unique_id = "yearly_usage"
     _attr_native_unit_of_measurement = UnitOfVolume.LITERS
     _attr_device_class = SensorDeviceClass.WATER
-    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_state_class = SensorStateClass.TOTAL
 
     @property
     def native_value(self) -> int:

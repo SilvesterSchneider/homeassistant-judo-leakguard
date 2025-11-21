@@ -1,0 +1,84 @@
+set_absence_schedule:
+  name: Abwesenheitsschutz planen
+  description: Konfiguriert ein Zeitfenster für den Abwesenheitsschutz.
+  fields:
+    index:
+      name: Index
+      description: Index des Zeitfensters (0-6).
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 6
+    start_day:
+      name: Starttag
+      description: Wochentag (1=Mo, 7=So).
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 7
+    start_hour:
+      name: Startstunde
+      description: Stunde des Starts (0-23).
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 23
+    start_minute:
+      name: Startminute
+      description: Minute des Starts (0-59).
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 59
+    stop_day:
+      name: Endtag
+      description: Wochentag (1=Mo, 7=So).
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 7
+    stop_hour:
+      name: Endstunde
+      description: Stunde des Endes (0-23).
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 23
+    stop_minute:
+      name: Endminute
+      description: Minute des Endes (0-59).
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 59
+
+clear_absence_schedule:
+  name: Abwesenheitsschutz löschen
+  description: Löscht ein konfiguriertes Zeitfenster.
+  fields:
+    index:
+      name: Index
+      description: Index des zu löschenden Zeitfensters (0-6).
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 6
+
+set_datetime:
+  name: Datum und Uhrzeit setzen
+  description: Synchronisiert die Geräteuhr.
+  fields:
+    datetime:
+      name: Zeitstempel
+      description: Optionaler Zeitstempel. Wenn leer, wird die aktuelle Systemzeit verwendet.
+      required: false
+      selector:
+        datetime:
