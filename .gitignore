@@ -1,43 +1,13 @@
-# Python-Bytecode & Cache
-__pycache__/
-*.py[cod]
-*.so
-*.dylib
-
-# Paket-/Build-Artefakte
-build/
-dist/
-*.egg-info/
-.eggs/
-
-# Virtuelle Umgebungen
-.venv/
-venv/
-env/
-ENV/
-
-# Tests & Coverage
-.pytest_cache/
-.coverage*
-htmlcov/
-coverage.xml
-
-# IDE/Editor
+﻿__pycache__/
+.python-version
+*.pyc
+.DS_Store
 .vscode/
 .idea/
-*.code-workspace
+.env
+venv/
+.env*/
+coverage.xml
+htmlcov/
+.pytest_cache/
 
-# Home-Assistant Dev-Setup
-ha-dev/config/home-assistant.log
-ha-dev/config/home-assistant.log*
-ha-dev/config/home-assistant_v2.db
-ha-dev/config/home-assistant_v2.db-shm
-ha-dev/config/home-assistant_v2.db-wal
-ha-dev/config/.storage/
-ha-dev/config/.cloud/
-ha-dev/config/*.yaml.bak
-ha-dev/config/*.yaml.backup
-ha-dev/config/custom_components/*
-
-# Lokale Integration
-custom_components/judo_leakguard/__pycache__/

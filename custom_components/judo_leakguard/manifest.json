@@ -1,0 +1,10 @@
+﻿{
+  "domain": "judo_leakguard",
+  "name": "Judo Leakguard",
+  "version": "0.0.0",
+  "documentation": "https://github.com/Silvester/homeassistant-judo-leakguard",
+  "requirements": [],
+  "codeowners": ["@your-github-handle"],
+  "integration_type": "hub",
+  "iot_class": "local_polling"
+}

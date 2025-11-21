@@ -1,5 +1,5 @@
-{
-  "name": "Judo ZEWA i-SAFE Leak Guard",
-  "render_readme": true,
-  "homeassistant": "2024.12.0"
+﻿{
+  "name": "Judo Leakguard",
+  "content_in_root": false,
+  "render_readme": true
 }
