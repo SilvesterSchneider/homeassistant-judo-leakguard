@@ -42,6 +42,7 @@ CMD_WRITE_LEAK_PRESET: Final = "50"
 CMD_SET_SLEEP_HOURS: Final = "53"
 CMD_READ_SLEEP_HOURS: Final = "6600"
 CMD_SET_VACATION_TYPE: Final = "56"
+CMD_READ_LEARN_STATUS: Final = "6400"
 CMD_READ_MICROLEAK_MODE: Final = "6500"
 CMD_SET_MICROLEAK_MODE: Final = "5B"
 CMD_READ_ABSENCE_WINDOW: Final = "60"
@@ -107,6 +108,14 @@ class MicroLeakMode(IntEnum):
     OFF = 0
     NOTIFY = 1
     NOTIFY_AND_CLOSE = 2
+
+
+@dataclass(frozen=True)
+class LearnStatus:
+    """Status des Lernmodus."""
+
+    active: bool
+    remaining_liters: int
 
 
 @dataclass(frozen=True)
@@ -409,6 +418,18 @@ class JudoLeakguardApi:
 
         await self._async_request(session, CMD_LEARN_MODE)
 
+    async def async_read_learn_status(self, session: ClientSession) -> LearnStatus:
+        """Liest den Lernstatus (6400)."""
+
+        payload = await self._async_request_hex(session, CMD_READ_LEARN_STATUS)
+        if len(payload) != 6:
+            # Fallback/Safety if response is unexpected
+            return LearnStatus(active=False, remaining_liters=0)
+        
+        active_byte = HexCodec.from_u8(payload[0:2])
+        remaining = HexCodec.from_u16_be(payload[2:6])
+        return LearnStatus(active=(active_byte == 1), remaining_liters=remaining)
+
     async def async_read_absence_limits(self, session: ClientSession) -> AbsenceLimits:
         """Liest die Abwesenheitsgrenzen (5E00)."""
 
@@ -572,10 +593,10 @@ class JudoLeakguardApi:
                     return await response.text()
             except ClientError as err:
                 if attempt == MAX_ATTEMPTS:
-                    raise JudoLeakguardApiError("Request failed") from err
+                    raise JudoLeakguardApiError(f"Request failed for {command} ({url}): {err}") from err
                 await asyncio.sleep(delay)
                 delay *= 2
-        raise JudoLeakguardApiError("Request failed")
+        raise JudoLeakguardApiError(f"Request failed for {command} ({url}) after {MAX_ATTEMPTS} attempts")
 
     @staticmethod
     def _extract_data_field(payload: str) -> str:
