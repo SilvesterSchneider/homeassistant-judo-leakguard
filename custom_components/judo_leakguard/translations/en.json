@@ -1,0 +1,20 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect Judo Leakguard",
+        "description": "Connect your Judo ZEWA i-SAFE via the local REST API.",
+        "data": {
+          "host": "Host or URL",
+          "username": "Username",
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect.",
+      "unsupported_device": "This device is not a ZEWA i-SAFE.",
+      "unknown": "Unexpected error."
+    }
+  }
+}
