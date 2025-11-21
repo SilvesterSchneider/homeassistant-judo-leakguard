@@ -1,0 +1,64 @@
+{
+  "title": "Judo ZEWA i-SAFE",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Judo ZEWA i-SAFE",
+        "description": "Connect to the leak guard",
+        "data": {
+          "base_url": "Device URL",
+          "username": "Username",
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect",
+      "invalid_auth": "Invalid authentication",
+      "unknown": "Unexpected error"
+    },
+    "abort": {
+      "already_configured": "Device is already configured"
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "learn_active": {
+        "name": "Learning active"
+      }
+    },
+    "sensor": {
+      "total_water_liters": {"name": "Total water (L)"},
+      "total_water_cubic_m": {"name": "Total water"},
+      "sleep_duration": {"name": "Sleep duration"},
+      "absence_flow_limit": {"name": "Absence flow limit"},
+      "absence_volume_limit": {"name": "Absence volume limit"},
+      "absence_duration_limit": {"name": "Absence duration limit"},
+      "learning_remaining_water": {"name": "Remaining learning water"},
+      "device_clock": {"name": "Device clock"},
+      "installation_date": {"name": "Installation date"},
+      "device_serial": {"name": "Serial number"},
+      "firmware_version": {"name": "Firmware version"}
+    },
+    "switch": {
+      "valve_open": {"name": "Valve open"},
+      "sleep_mode": {"name": "Sleep mode"},
+      "vacation_mode": {"name": "Vacation mode"}
+    },
+    "button": {
+      "reset_alarms": {"name": "Reset alarms"},
+      "start_microleak_test": {"name": "Start micro-leak test"},
+      "start_learning": {"name": "Start learning"}
+    },
+    "number": {
+      "sleep_hours": {"name": "Sleep hours"},
+      "absence_flow_limit": {"name": "Absence flow limit"},
+      "absence_volume_limit": {"name": "Absence volume limit"},
+      "absence_duration_limit": {"name": "Absence duration limit"}
+    },
+    "select": {
+      "vacation_type": {"name": "Vacation type"},
+      "micro_leak_mode": {"name": "Micro-leak mode"}
+    }
+  }
+}
