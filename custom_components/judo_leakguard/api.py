@@ -141,9 +141,9 @@ class LeakPreset:
 
         return (
             HexCodec.to_u8(int(self.vacation_type))
-            + HexCodec.to_u16_be(self.max_flow_lph)
-            + HexCodec.to_u16_be(self.max_volume_l)
-            + HexCodec.to_u16_be(self.max_duration_min)
+            + HexCodec.to_u16_le(self.max_flow_lph)
+            + HexCodec.to_u16_le(self.max_volume_l)
+            + HexCodec.to_u16_le(self.max_duration_min)
         )
 
 
@@ -286,26 +286,31 @@ class HexCodec:
         return f"{value:02X}"
 
     @staticmethod
+    def to_u16_le(value: int) -> str:
+        HexCodec._validate_range(value, 0xFFFF)
+        return value.to_bytes(2, "little").hex().upper()
+
+    @staticmethod
+    def to_u32_le(value: int) -> str:
+        HexCodec._validate_range(value, 0xFFFFFFFF)
+        return value.to_bytes(4, "little").hex().upper()
+
+    @staticmethod
     def to_u16_be(value: int) -> str:
         HexCodec._validate_range(value, 0xFFFF)
         return value.to_bytes(2, "big").hex().upper()
-
-    @staticmethod
-    def to_u32_be(value: int) -> str:
-        HexCodec._validate_range(value, 0xFFFFFFFF)
-        return value.to_bytes(4, "big").hex().upper()
 
     @staticmethod
     def from_u8(value: str) -> int:
         return int(value, 16)
 
     @staticmethod
-    def from_u16_be(value: str) -> int:
-        return int.from_bytes(bytes.fromhex(value), "big")
+    def from_u16_le(value: str) -> int:
+        return int.from_bytes(bytes.fromhex(value), "little")
 
     @staticmethod
-    def from_u32_be(value: str) -> int:
-        return int.from_bytes(bytes.fromhex(value), "big")
+    def from_u32_le(value: str) -> int:
+        return int.from_bytes(bytes.fromhex(value), "little")
 
     @staticmethod
     def chunks(payload: str, size_bytes: int) -> list[str]:
@@ -363,7 +368,7 @@ class JudoLeakguardApi:
         """Liest das Inbetriebnahme-Datum (0E00) als Unix-Zeitstempel."""
 
         payload = await self._async_request_hex(session, CMD_COMMISSION_DATE)
-        timestamp = HexCodec.from_u32_be(payload)
+        timestamp = HexCodec.from_u32_le(payload)
         commissioned_at = datetime.fromtimestamp(timestamp, tz=UTC)
         return CommissionInfo(timestamp=timestamp, commissioned_at=commissioned_at)
 
@@ -371,7 +376,7 @@ class JudoLeakguardApi:
         """Liest den Gesamtwasserverbrauch (2800)."""
 
         payload = await self._async_request_hex(session, CMD_TOTAL_WATER)
-        return TotalWaterUsage(liters=HexCodec.from_u32_be(payload))
+        return TotalWaterUsage(liters=HexCodec.from_u32_le(payload))
 
     async def async_acknowledge_alarm(self, session: ClientSession) -> None:
         """Bestätigt einen Alarm (6300)."""
@@ -425,9 +430,9 @@ class JudoLeakguardApi:
         if len(payload) != 6:
             # Fallback/Safety if response is unexpected
             return LearnStatus(active=False, remaining_liters=0)
-        
+
         active_byte = HexCodec.from_u8(payload[0:2])
-        remaining = HexCodec.from_u16_be(payload[2:6])
+        remaining = HexCodec.from_u16_le(payload[2:6])
         return LearnStatus(active=(active_byte == 1), remaining_liters=remaining)
 
     async def async_read_absence_limits(self, session: ClientSession) -> AbsenceLimits:
@@ -436,18 +441,20 @@ class JudoLeakguardApi:
         payload = await self._async_request_hex(session, CMD_READ_ABSENCE_LIMITS)
         if len(payload) != 12:
             raise JudoLeakguardApiError("Absence limits payload must be 6 bytes")
-        flow = HexCodec.from_u16_be(payload[0:4])
-        volume = HexCodec.from_u16_be(payload[4:8])
-        minutes = HexCodec.from_u16_be(payload[8:12])
+        flow = HexCodec.from_u16_le(payload[0:4])
+        volume = HexCodec.from_u16_le(payload[4:8])
+        minutes = HexCodec.from_u16_le(payload[8:12])
         return AbsenceLimits(flow, volume, minutes)
 
-    async def async_write_absence_limits(self, session: ClientSession, limits: AbsenceLimits) -> None:
+    async def async_write_absence_limits(
+        self, session: ClientSession, limits: AbsenceLimits
+    ) -> None:
         """Schreibt die Abwesenheitsgrenzen (5F00)."""
 
         payload = (
-            HexCodec.to_u16_be(limits.max_flow_lph)
-            + HexCodec.to_u16_be(limits.max_volume_l)
-            + HexCodec.to_u16_be(limits.max_duration_min)
+            HexCodec.to_u16_le(limits.max_flow_lph)
+            + HexCodec.to_u16_le(limits.max_volume_l)
+            + HexCodec.to_u16_le(limits.max_duration_min)
         )
         await self._async_request(session, CMD_WRITE_ABSENCE_LIMITS, payload)
 
@@ -614,7 +621,7 @@ class JudoLeakguardApi:
 
         if expected_blocks is not None and len(payload) != expected_blocks * 8:
             raise JudoLeakguardApiError("Unexpected length for statistics payload")
-        return [HexCodec.from_u32_be(part) for part in HexCodec.chunks(payload, 4)]
+        return [HexCodec.from_u32_le(part) for part in HexCodec.chunks(payload, 4)]
 
     @staticmethod
     def _encode_day(target_day: date) -> str:
