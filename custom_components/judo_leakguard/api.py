@@ -5,10 +5,13 @@ import asyncio
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
 import json
+import logging
 import string
 from enum import IntEnum
 from typing import Final
 from urllib.parse import urlparse
+
+_LOGGER = logging.getLogger(__name__)
 
 from aiohttp import BasicAuth, ClientError, ClientSession
 
@@ -567,7 +570,7 @@ class JudoLeakguardApi:
         """Holt Jahresstatistiken (FE)."""
 
         payload = await self._async_request_hex(
-            session, CMD_YEAR_STATS, HexCodec.to_u16(year)
+            session, CMD_YEAR_STATS, HexCodec.to_u8(year - 2000)
         )
         buckets = self._parse_u32_sequence(payload, expected_blocks=12)
         return YearStatistics(liters_per_month=buckets)
@@ -585,6 +588,7 @@ class JudoLeakguardApi:
         """Sendet einen einzelnen API-Aufruf mit Backoff und Fehlerbehandlung."""
 
         url = f"{self._base_url}/api/rest/{command}{payload}"
+        _LOGGER.debug(f"Requesting {url}")
         delay = BACKOFF_SECONDS
         for attempt in range(1, MAX_ATTEMPTS + 1):
             try:
@@ -623,7 +627,7 @@ class JudoLeakguardApi:
     @staticmethod
     def _encode_day(target_day: date) -> str:
         return (
-            HexCodec.to_u16(target_day.year)
+            HexCodec.to_u8(target_day.year - 2000)
             + HexCodec.to_u8(target_day.month)
             + HexCodec.to_u8(target_day.day)
         )
@@ -631,11 +635,11 @@ class JudoLeakguardApi:
     @staticmethod
     def _encode_week(target_day: date) -> str:
         iso_year, iso_week, _ = target_day.isocalendar()
-        return HexCodec.to_u16(iso_year) + HexCodec.to_u8(iso_week)
+        return HexCodec.to_u8(iso_year - 2000) + HexCodec.to_u8(iso_week)
 
     @staticmethod
     def _encode_month(target_day: date) -> str:
-        return HexCodec.to_u16(target_day.year) + HexCodec.to_u8(target_day.month)
+        return HexCodec.to_u8(target_day.year - 2000) + HexCodec.to_u8(target_day.month)
 
     @staticmethod
     def _ensure_window_index(index: int) -> None:
