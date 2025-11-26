@@ -1,7 +1,7 @@
 {
   "domain": "judo_leakguard",
   "name": "Judo Leakguard",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "documentation": "https://github.com/Silvester/homeassistant-judo-leakguard",
   "requirements": [],
   "codeowners": [

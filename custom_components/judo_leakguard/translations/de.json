@@ -16,5 +16,10 @@
       "unsupported_device": "Dieses Gerät ist kein ZEWA i-SAFE.",
       "unknown": "Unbekannter Fehler."
     }
+  },
+  "sensor": {
+    "total_water_m3": {
+      "name": "Gesamtwasser m³"
+    }
   }
 }

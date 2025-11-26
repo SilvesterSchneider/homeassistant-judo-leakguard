@@ -37,6 +37,7 @@ async def async_setup_entry(
             JudoLeakguardDeviceFirmwareSensor(coordinator),
             JudoLeakguardInstallationDateSensor(coordinator),
             JudoLeakguardTotalWaterSensor(coordinator),
+            JudoLeakguardTotalWaterM3Sensor(coordinator),
             JudoLeakguardDailyUsageSensor(coordinator),
             JudoLeakguardWeeklyUsageSensor(coordinator),
             JudoLeakguardMonthlyUsageSensor(coordinator),
@@ -178,6 +179,21 @@ class JudoLeakguardTotalWaterSensor(JudoLeakguardEntity, SensorEntity):
     def native_value(self) -> int:
         """Return the value."""
         return self.coordinator.data.total_water.liters
+
+
+class JudoLeakguardTotalWaterM3Sensor(JudoLeakguardEntity, SensorEntity):
+    """Sensor for total water in m³."""
+
+    _attr_translation_key = "total_water_m3"
+    _attr_unique_id = "total_water_m3"
+    _attr_native_unit_of_measurement = UnitOfVolume.CUBIC_METERS
+    _attr_device_class = SensorDeviceClass.WATER
+    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+
+    @property
+    def native_value(self) -> float:
+        """Return the value."""
+        return self.coordinator.data.total_water.liters / 1000
 
 
 class JudoLeakguardDailyUsageSensor(JudoLeakguardEntity, SensorEntity):
