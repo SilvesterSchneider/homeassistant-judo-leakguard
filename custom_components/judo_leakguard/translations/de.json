@@ -17,9 +17,56 @@
       "unknown": "Unbekannter Fehler."
     }
   },
-  "sensor": {
-    "total_water_m3": {
-      "name": "Gesamtwasser m³"
+  "entity": {
+    "sensor": {
+      "sleep_duration": {
+        "name": "Schlafdauer"
+      },
+      "absence_flow_limit": {
+        "name": "Abwesenheit Durchfluss Grenzwert"
+      },
+      "absence_volume_limit": {
+        "name": "Abwesenheit Volumen Grenzwert"
+      },
+      "absence_duration_limit": {
+        "name": "Abwesenheit Dauer Grenzwert"
+      },
+      "device_datetime": {
+        "name": "Gerät Datum/Uhrzeit"
+      },
+      "device_type": {
+        "name": "Gerätetyp"
+      },
+      "device_serial": {
+        "name": "Gerät Seriennummer"
+      },
+      "device_firmware": {
+        "name": "Gerät Firmware"
+      },
+      "installation_date": {
+        "name": "Installationsdatum"
+      },
+      "total_water_liters": {
+        "name": "Gesamtwasser"
+      },
+      "total_water_m3": {
+        "name": "Gesamtwasser m³"
+      },
+      "daily_usage": {
+        "name": "Tagesverbrauch"
+      },
+      "weekly_usage": {
+        "name": "Wochenverbrauch"
+      },
+      "monthly_usage": {
+        "name": "Monatsverbrauch"
+      },
+      "yearly_usage": {
+        "name": "Jahresverbrauch"
+      },
+      "learning_remaining_water": {
+        "name": "Lernmodus verbleibendes Wasser"
+      }
     }
   }
 }

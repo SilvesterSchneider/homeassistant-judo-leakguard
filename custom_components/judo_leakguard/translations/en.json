@@ -17,9 +17,56 @@
       "unknown": "Unexpected error."
     }
   },
-  "sensor": {
-    "total_water_m3": {
-      "name": "Total water m³"
+  "entity": {
+    "sensor": {
+      "sleep_duration": {
+        "name": "Sleep duration"
+      },
+      "absence_flow_limit": {
+        "name": "Absence flow limit"
+      },
+      "absence_volume_limit": {
+        "name": "Absence volume limit"
+      },
+      "absence_duration_limit": {
+        "name": "Absence duration limit"
+      },
+      "device_datetime": {
+        "name": "Device datetime"
+      },
+      "device_type": {
+        "name": "Device type"
+      },
+      "device_serial": {
+        "name": "Device serial"
+      },
+      "device_firmware": {
+        "name": "Device firmware"
+      },
+      "installation_date": {
+        "name": "Installation date"
+      },
+      "total_water_liters": {
+        "name": "Total water"
+      },
+      "total_water_m3": {
+        "name": "Total water m³"
+      },
+      "daily_usage": {
+        "name": "Daily usage"
+      },
+      "weekly_usage": {
+        "name": "Weekly usage"
+      },
+      "monthly_usage": {
+        "name": "Monthly usage"
+      },
+      "yearly_usage": {
+        "name": "Yearly usage"
+      },
+      "learning_remaining_water": {
+        "name": "Learning mode remaining water"
+      }
     }
   }
 }
