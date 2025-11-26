@@ -2,19 +2,38 @@
   "config": {
     "step": {
       "user": {
-        "title": "Judo Leakguard verbinden",
-        "description": "Verbinde deinen Judo ZEWA i-SAFE über die lokale REST-API.",
+        "title": "Connect Judo Leakguard",
+        "description": "Connect your Judo ZEWA i-SAFE via the local REST API.",
         "data": {
-          "host": "Host oder URL",
-          "username": "Benutzername",
-          "password": "Passwort"
+          "host": "Host or URL",
+          "username": "Username",
+          "password": "Password"
         }
       }
     },
     "error": {
-      "cannot_connect": "Verbindung fehlgeschlagen.",
-      "unsupported_device": "Dieses Gerät ist kein ZEWA i-SAFE.",
-      "unknown": "Unbekannter Fehler."
+      "cannot_connect": "Failed to connect.",
+      "unsupported_device": "This device is not a ZEWA i-SAFE.",
+      "unknown": "Unexpected error."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "sleep_duration": "Sleep duration",
+      "absence_flow_limit": "Absence flow limit",
+      "absence_volume_limit": "Absence volume limit",
+      "absence_duration_limit": "Absence duration limit",
+      "device_datetime": "Device datetime",
+      "device_type": "Device type",
+      "device_serial": "Device serial",
+      "device_firmware": "Device firmware",
+      "installation_date": "Installation date",
+      "total_water_liters": "Total water",
+      "daily_usage": "Daily usage",
+      "weekly_usage": "Weekly usage",
+      "monthly_usage": "Monthly usage",
+      "yearly_usage": "Yearly usage",
+      "learning_remaining_water": "Learning remaining water"
     }
   }
 }
