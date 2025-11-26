@@ -16,5 +16,24 @@
       "unsupported_device": "This device is not a ZEWA i-SAFE.",
       "unknown": "Unexpected error."
     }
+  },
+  "entity": {
+    "sensor": {
+      "sleep_duration": "Sleep duration",
+      "absence_flow_limit": "Absence flow limit",
+      "absence_volume_limit": "Absence volume limit",
+      "absence_duration_limit": "Absence duration limit",
+      "device_datetime": "Device datetime",
+      "device_type": "Device type",
+      "device_serial": "Device serial",
+      "device_firmware": "Device firmware",
+      "installation_date": "Installation date",
+      "total_water_liters": "Total water",
+      "daily_usage": "Daily usage",
+      "weekly_usage": "Weekly usage",
+      "monthly_usage": "Monthly usage",
+      "yearly_usage": "Yearly usage",
+      "learning_remaining_water": "Learning remaining water"
+    }
   }
 }

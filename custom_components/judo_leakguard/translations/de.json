@@ -16,5 +16,24 @@
       "unsupported_device": "Dieses Gerät ist kein ZEWA i-SAFE.",
       "unknown": "Unbekannter Fehler."
     }
+  },
+  "entity": {
+    "sensor": {
+      "sleep_duration": "Ruhedauer",
+      "absence_flow_limit": "Abwesenheitsdurchflussbegrenzung",
+      "absence_volume_limit": "Abwesenheitsvolumenbegrenzung",
+      "absence_duration_limit": "Abwesenheitsdauerbegrenzung",
+      "device_datetime": "Geräte-Datum/Zeit",
+      "device_type": "Gerätetyp",
+      "device_serial": "Seriennummer",
+      "device_firmware": "Firmware",
+      "installation_date": "Installationsdatum",
+      "total_water_liters": "Gesamtwasserverbrauch",
+      "daily_usage": "Tagesverbrauch",
+      "weekly_usage": "Wochenverbrauch",
+      "monthly_usage": "Monatsverbrauch",
+      "yearly_usage": "Jahresverbrauch",
+      "learning_remaining_water": "Lernphase verbleibendes Wasservolumen"
+    }
   }
 }
