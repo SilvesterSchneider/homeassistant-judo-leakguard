@@ -571,7 +571,9 @@ class JudoLeakguardApi:
     async def async_read_year_statistics(self, session: ClientSession, year: int) -> YearStatistics:
         """Holt Jahresstatistiken (FE)."""
 
-        payload = await self._async_request_hex(session, CMD_YEAR_STATS, HexCodec.to_u16_be(year))
+        payload = await self._async_request_hex(
+            session, CMD_YEAR_STATS, HexCodec.to_u16_le(year)
+        )
         buckets = self._parse_u32_sequence(payload, expected_blocks=12)
         return YearStatistics(liters_per_month=buckets)
 
@@ -626,7 +628,7 @@ class JudoLeakguardApi:
     @staticmethod
     def _encode_day(target_day: date) -> str:
         return (
-            HexCodec.to_u16_be(target_day.year)
+            HexCodec.to_u16_le(target_day.year)
             + HexCodec.to_u8(target_day.month)
             + HexCodec.to_u8(target_day.day)
         )
@@ -634,11 +636,11 @@ class JudoLeakguardApi:
     @staticmethod
     def _encode_week(target_day: date) -> str:
         iso_year, iso_week, _ = target_day.isocalendar()
-        return HexCodec.to_u16_be(iso_year) + HexCodec.to_u8(iso_week)
+        return HexCodec.to_u16_le(iso_year) + HexCodec.to_u8(iso_week)
 
     @staticmethod
     def _encode_month(target_day: date) -> str:
-        return HexCodec.to_u16_be(target_day.year) + HexCodec.to_u8(target_day.month)
+        return HexCodec.to_u16_le(target_day.year) + HexCodec.to_u8(target_day.month)
 
     @staticmethod
     def _ensure_window_index(index: int) -> None:
