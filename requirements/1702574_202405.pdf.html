@@ -1,0 +1,405 @@
+<h5 id></h5>
+<h4 id="verbindung-ber-internet-smart-home-f-r-ger-te-mit-judo-connectivity-modul">Verbindung über Internet / Smart Home für Geräte mit JUDO Connectivity-Modul</h4>
+<p>Überwachung und Bedienung per App / Smart Home Anschlussmöglichkeiten Gültig für: EU-Länder und Schweiz Sprache: deutsch
+Vor Anschluss lesen und aufbewahren!
+Inhaltsverzeichnis 1 Inhalt der Anleitung.................. 3 2 Voraussetzungen für die Fern-
+überwachung/-bedienung........ 3 3 Möglichkeiten der Verbindung
+mit dem Internet........................ 3 4 JUDO Web Interface................. 3 4.1 Verbindung zum JUDO Web
+Interface herstellen..................... 4 4.2  <em>JUDO Web Interface - Übersicht.</em> 5 4.3  <em>JUDO Web Interface - Einstel-</em>
+<em>lungen.........................................</em> 6 5 Die JU-Control App................... 9 5.1 JU-Control App installieren......... 9 5.2 JU-Control App starten............... 9 5.3 Benutzerkonto anlegen............... 9 5.4 Standort hinzufügen bzw. aus-
+wählen......................................... 10 5.5 Gerät hinzufügen / Geräteüber-
+sicht............................................. 10 5.6  <em>Schaltfläche Gerätemenü...........</em> 12 5.7 Benutzerverwaltung und -ein-
+stellungen.................................... 16 5.8 Benachrichtigungen.................... 19 5.9 Benutzername oder Passwort
+vergessen?.................................. 21 6 Steuerung über Amazon Alexa 22 7 Lokale Schnittstelle: REST API 23 8 Datenschutzerklärung.............. 25 9 Kundendienst............................ 28
+1 Inhalt der Anleitung JUDO-Geräte mit eingebautem bzw. nach-träglich eingebautem JUDO Connec-tivity-Modul bieten folgende Möglichkeiten zur Fernüberwachung bzw. -steuerung:</p>
+<ul>
+<li>über mobile Endgeräte wie Smart
+Phone oder Tablet, mit Hilfe der JU-Control App</li>
+<li>per Sprachbefehl über Amazon Alexa</li>
+<li>per REST API, zur Verwendung für
+lokale Smart-Home-Systeme.
+Diese Anleitung beschreibt die notwendi-gen Schritte zur Integration dieser Geräte in lokale Smart-Home-Steuerungen.
+INFO_NO_HEADER inbau und Anschluss des JUDO Connectivity-Moduls sind in der sepa-raten Einbauanleitung beschrieben, die dem als Zubehör erhältlichen Connectivity-Modul beigefügt ist.
+2 Voraussetzungen für die Fernüberwa-chung/-bedienung
+Eine Fernüberwachung bzw. -bedienung des Geräts erfordert</li>
+<li>ein ins Gerät eingebautes JUDO Con-
+nectivity-Modul (entweder bereits ein-gebaut ab Werk, oder nachträglich als Zubehör)</li>
+<li>eine stabile LAN- oder WLAN-Verbin-dung mit dem Internet über das Heim-netzwerk (siehe Kapitel 4.1)</li>
+<li>das Anlegen eines Benutzerkontos über die JUDO-Webseite</li>
+<li>die Verknüpfung des Geräts mit dem Benutzerkonto
+3 Möglichkeiten der Ver-bindung mit dem Internet
+So lässt sich das Connectivity-Modul des Geräts mit dem Heimnetzwerk verbinden:</li>
+<li>per LAN-Kabel</li>
+<li>per PowerLine Adapter</li>
+<li>per WLAN (direkt mit dem Router oder
+über einen WLAN-Repeater)
+4 JUDO Web Interface Das Connectivity-Modul des Geräts verfügt über ein integriertes Web Interface zur Kon-figuration der Netzwerkverbindung.
+Über das Web Interface lässt sich Folgen-des einstellen:</li>
+<li>Anmeldedaten für den Zugang zum
+internen Web Interface ändern</li>
+<li>Standardverbindung umstellen (LAN /
+WLAN)</li>
+<li>Netzwerk für die LAN-Verbindung zum
+Heimnetzwerk einstellen</li>
+<li>Netzwerk für die WLAN-Verbindung
+zum Heimnetzwerk einstellen</li>
+<li>Gewünschte Verbindung auswählen:
+zum JUDO-Server (Haken gesetzt), oder nur zur lokalen Verbindung (Haken entfernt)</li>
+<li>Zeitabweichung zur UTC-Zeit einstellen
+INFO_NO_HEADERWenn der Router des Heimnetzwerks auf DHCP (automatischer Bezug der IP-Adresse) eingestellt ist, baut sich eine LAN-Verbindung zwischen Con-nectivity-Modul und Router automa-tisch auf. Das JUDO Web Interface wird dafür nicht benötigt.
+4.1 Verbindung zum JUDO Web Interface herstellen
+Ausgangszustand:</li>
+<li>Das Connectivity-Modul ist gemäß der
+beigefügten Einbauanleitung ordnungs-gemäß in das Gerät eingebaut bzw. darin bereits enthalten.</li>
+<li>Das Gerät ist noch nicht mit dem Stromnetz verbunden.
+INFO_NO_HEADER ach dem Einstecken des Netzgeräts stellt das Connectivity-Modul für etwa 10 Minuten einen WLAN Access Point für die Konfiguration der Ver-bindung bereit.
+So wird die Verbindung zum JUDO Web Interface hergestellt: 1. Das Netzgerät des Geräts mit dem
+Stromnetz verbinden. 2. Auf dem mobilen Endgerät (Smart-
+<em>phone, Tablet oder Laptop) unter Ein-stellungen die WLAN-Einstellungen öff-</em> nen. Die Liste der erkannten WLAN-Netze erscheint.</li>
+</ul>
+<ol start="3">
+<li><em>Das WLAN-Netz Connectivity-XXXXX</em> auswählen.
+Falls das folgende Dialogfenster  <em>erscheint, unbedingt mit Ja abschlie-</em> ßen:
+<em>Die aktive WLAN-Verbindung Con-nectivity-XXXXX wird angezeigt - das</em> mobile Endgerät ist mit dem WLAN Access Point des Connectivity-Moduls verbunden.</li>
+<li>Auf dem mobilen Endgerät (Smart-phone, Tablet oder Laptop) einen Inter-net Browser starten, z.B. Edge oder Chrome, und die URL des Web Inter-face in den Browser eingeben: 192.168.4.1 Die Aufforderung zur Eingabe der Zugangsdaten zum JUDO Web Inter-face erscheint (Nutzername und Pass-wort).</li>
+<li>Die folgenden Zugangsdaten eingeben:
+Nutzername: admin Passwort: Connectivity</li>
+<li><em>Schaltfläche Anmelden wählen</em>
+Die Übersichtsseite des JUDO Web Interface erscheint.
+INFO_NO_HEADER n den WLAN-Einstellungen des mobilen Endgeräts (Smartphone, Tablet oder Laptop) die Einstel- <em>lung Automatisch verbinden für</em> die WLAN-Verbindungen deak-tivieren. Andernfalls kann beim automatischen Neuverbinden die Verbindung zum Access Point des Web Interface verloren gehen.
+In einigen Fällen kann es erfor-derlich sein, die mobilen Daten während der Konfiguration aus-zuschalten.
+Falls sich die Verbindung zum Access Point des Web Inter-face nicht direkt herstellen lässt, kann sie auch im Heimnetz-werk mit einem Browser über die lokal zugewiesene IP-Adresse oder über den Namen des Con-nectivity-Moduls (<a href="http://connec-tivity-XXXXX">http://connec-tivity-XXXXX</a>) erreicht werden.
+4.2  <em>JUDO Web Interface - Über-sicht</em>
+Inhalt Webseite  <em>Übersicht</em>
+Beschreibung
+Überschrift Connectivity-Modul
+Seriennummer 9-stellige Geräte-Identifikationsnum-mer
+Hardware-Version Hardware-Versions-nummer des Con-nectivity-Moduls
+<em>Tab. 1: Inhalt der Anzeige</em>
+Inhalt Webseite  <em>Übersicht</em>
+Beschreibung
+Software-Version Software-Versions-nummer des Con-nectivity-Moduls
+Portal-Server ver-bunden?
+Anzeige der Verbin-dung per Haken im Kontrollkästchen
+<em>Tab. 1: Inhalt der Anzeige</em>
+4.3  <em>JUDO Web Interface - Einstel-lungen</em>
+INFO_NO_HEADERWICHTIG: Änderungen in den Einstellungen immer mit der Taste Speichern bestä-tigen - nur dann werden sie auch übernommen.
+Folgende Einstellungen lassen sich vorneh-men:
+4.3.1 Anmeldedaten anzeigen oder ändern
+Benutzername Standard: admin
+Passwort Standard: Connectivity
+INFO_NO_HEADERBenutzername und Passwort lassen sich nach Wunsch ändern.
+4.3.2 Standard-Verbindung einstel-len
+Wahlmöglichkeiten für den Verbindungs-Stan-dard
+<em>LAN oder WLAN</em>
+4.3.3 LAN-Verbindung konfigurie-ren
+Inhalt Beschreibung
+Einstellungen auto-matisch beziehen (DHCP)
+Kontrollkästchen aktiviert = ein / deaktiviert = aus
+Inhalt Beschreibung
+IP-Adresse
+IP-Subnetz-Maske
+Standard Gateway
+DNS-Server
+MAC-Adresse
+Eingabe der Daten notwendig, falls DHCP nicht aktiviert ist
+4.3.4 WLAN-Verbindung konfigurie-ren
+Inhalt Beschreibung
+WLAN ein / aus Kontrollkästchen akti-viert = ein / deaktiviert = aus
+Einstellungen automatisch beziehen (DHCP)
+Kontrollkästchen akti-viert = ein / deaktiviert = aus
+Inhalt Beschreibung
+SSID Name des WLAN-Netzwerks
+WLAN-Kennwort Zugangs-Passwort zum WLAN-Netzwerk, mit Kontrollkästchen zur Anzeige als Klar-text oder ****
+IP-Adresse
+IP-Sub-netz-Maske
+Standard-Gate-way
+DNS-Server
+MAC-Adresse
+Eingabe der Daten notwendig, falls DHCP nicht aktiviert ist
+4.3.5 Verbindung zum JUDO-Portal-server herstellen
+4.3.6 Lokale Verbindung zum Heim-netzwerk herstellen
+<em>Wenn der Haken neben Verbindung zum Portal-Server herstellen entfernt wird, sind</em> nur lokale Verbindungen möglich. Auf diese Weise lässt sich eine ausschließlilch lokale Verbindung zu einem Smart-Home-System herstellen.
+Die Kommandos der JUDO REST API ermöglichen eine lokale Bedienung des Geräts (siehe Kapitel 7 Lokale Schnittstelle: REST API, Seite 23).
+4.3.7 Einstellungen Zeit und Datum
+Folgende Wahlmöglichkeiten bestehen für die Zeit- und Datumseinstellung:
+5 Die JU-Control App Die JU-Control App bietet die Bedienober-fläche, um fernbedienfähige JUDO-Geräte von mobilen Endgeräten aus zu verwalten, zu bedienen und zu überwachen.
+5.1 JU-Control App installieren</li>
+</ol>
+<ul>
+<li>Mobile Endgeräte: JU-Control vom IOS
+App Store bzw. Android Playstore her-unterladen und installieren.</li>
+<li>PC oder Laptop: Browser starten und die Webadresse <a href="https://www.ju-control.app">https://www.ju-control.app</a> eingeben.
+5.2 JU-Control App starten Nach dem Start der JU-Contol App erscheint die Aufforderung zur Anmeldung bzw. Registrierung:
+Falls noch kein Benutzerkonto angelegt wurde:</li>
+<li><em>Feld Registrieren anklicken bzw. antip-</em>
+pen und den Anweisungen im Kapitel 5.3 folgen.
+Falls bereits ein Benutzerkonto angelegt wurde:</li>
+<li>Den Benutzernamen und das Passwort  <em>eingeben und Feld Anmelden anklicken</em> bzw. antippen.
+5.3 Benutzerkonto anlegen So wird&#39;s gemacht: 1.  <em>Die Schaltfläche Registrieren anwählen.</em>
+Das Fenster zur Eingabe der Benutzer-daten erscheint.</li>
+</ul>
+<ol start="2">
+<li>Benutzerdaten eingeben.
+INFO_NO_HEADER ie mit * gekennzeichneten Fel-der sind Pflichtfelder und müssen ausgefüllt werden.
+Benutzername und Passwort festhalten für den späteren Gebrauch.</li>
+<li><em>Kontrollkästchen links neben Daten-schutzerklärung akzeptieren anwählen</em> (siehe auch Kapitel 8).</li>
+<li><em>Ganz unten Feld Registrieren anwäh-</em> len. Zur Bestätigung wird eine E-Mail an die in der Registrierung angegebene E-Mail-Adresse gesandt.</li>
+<li><em>Den in der E-Mail enthaltenen Link hier</em> zur Bestätigung anwählen. Das Benutzerkonto wird freigeschal-tet und ist künftig mit dem festgelegten Benutzernamen und Passwort zugäng-lich.
+5.4 Standort hinzufügen bzw. aus-wählen
+Nach dem erstmaligen Anmelden in der JU-Control App ist noch kein Standort angelegt.
+INFO_NO_HEADER er Standort bezeichnet den Einbau-ort des Geräts.
+In der JU-Control App lassen sich mehrere Standorte anlegen.
+So wird&#39;s gemacht: 1.  <em>Schaltfläche Standort hinzufügen</em>
+anwählen.</li>
+<li>Die Standortdaten eingeben. INFO_NO_HEADER alls der Standort mit der bei der Registrierung eingegebe-nen Adresse übereinstimmt, kön-nen diese Angaben durch Ankli-cken bzw. Antippen des Felds  <em>Aus Registrierungsdaten über-nehmen einfach und zeitsparend</em> übernommen werden.</li>
+<li><em>Schaltfläche Hinzufügen anwählen.</em>
+Der neu angelegte Standort wird ange-zeigt und steht unter der Schaltfläche  <em>Standort zukünftig zur Anwahl zur Ver-</em> fügung.
+5.5 Gerät hinzufügen / Geräte-übersicht
+Dem zuvor angelegten Standort wird nun das Gerät hinzugefügt.
+INFO_NO_HEADER inem Standort können auch meh-rere Geräte zugeordnet werden.
+So wird&#39;s gemacht: 1. Den gewünschten Standort anwählen.</li>
+<li><em>Die Schaltfläche Gerät hinzufügen</em> anwählen.</li>
+<li>Das Gerät hinzufügen – entweder durch Eingabe der
+Geräte-ID – oder, bei Verwendung eines Smart-
+phones, durch Abscannen des QR-Codes mit dem in der Kamera inte-grierten QR-Code Scanner
+INFO_NO_HEADERSowohl Geräte-ID als auch QR-Code sind auf dem Typenschild des Geräts enthalten.
+Die Geräte-ID ist zusätzlich im Info-Menü des Geräts abrufbar.
+Wichtig für das Abscannen des QR-Codes: Die Geräte-ID gibt es ° 6-stellig: in diesem Fall den QR-
+Code abscannen, der sich direkt auf dem Connectivity-Modul befin-det (oder alternativ die dort ange-gebene MAC-Adresse zur Eingabe verwenden).
+° 9-stellig: in diesem Fall den QR-Code auf dem Typenschild des Geräts abscannen (oder alternativ die 14-stellige Geräte-ID auf dem Typenschild eingeben).
+Das verknüpfte Gerät wird in der Gerä-teübersicht angezeigt und lässt sich direkt anwählen.
+INFO_NO_HEADER er JUDO Kundendienst führt die Geräteverknüpfung bei Bedarf auch telefonisch durch (siehe Kapitel 9).
+Dazu benötigt der Kundendienst die Geräte-ID, die entweder auf dem Typenschild des Geräts oder auch über die Info-Taste im Menü abgele-sen werden kann.
+5.6  <em>Schaltfläche Gerätemenü</em>
+INFO_NO_HEADER  <em>ie Schaltfläche Gerätemenü ist nicht</em> verfügbar beim Enthärer i-soft PRO.
+Wenn eines der verbundenen Geräte ange- <em>wählt ist, erscheint die Schaltfläche Geräte-menü:</em>
+SAFE+
+SAFE+
+Abb. 1: Anzeige bei ausgewählten Gerät
+5.6.1 Gerätemenü i-soft und i-soft SAFE+
+Abb. 2: Auswahl über Schaltfläche  <em>Gerätemenü</em>
+Wasserszenen Je nach Aktivität sind unterschiedliche Ein-stellungen für Enthärtungsgrad und Lecka-geschutz (i-soft SAFE+) oder Leckage-warnung (i-soft) erforderlich. Um dies zu erleichtern, sind über die Schaltflächen  <em>Gerätemenü / Wasserszenen einige Vorein-</em> stellungen gespeichert und komfortabel ein-stellbar:
+INFO_NO_HEADER ie voreingestellten Wasserszenen sind nur über die JU-Control App ein-stellbar, nicht am Gerät.
+Wasserszene einstellen - so wird&#39;s gemacht: 1. Gerät auswählen. 2.  <em>Schaltfläche Gerätemenü anwählen.</em> 3. Gewünschte Wasserszene durch
+Anwählen des Auswahlpunkts aktivie-ren. Die Wasserszene ist aktiviert. Die Einstellung kann jederzeit wieder geändert werden.
+Wasserszene WunschWasserhärte Leckageschutzfunktion bzw. Leckagewarnung
+Normalbetrieb 8 °dH aktiv
+Duschen 4 °dH aktiv
+Gartenbewässerung halber Wert der unbehandel-ten Wasserhärte + 2 °dH
+deaktiviert
+Heizungsbefüllung 1 °dH aktiv
+Waschen 1 °dH aktiv
+<em>Tab. 2: Einstellungen der voreingestellten Wasserszenen</em>
+Betriebsstatus
+<em>Nach Anwählen der Schaltfläche Betriebs-status wird Folgendes angezeigt:</em></li>
+</ol>
+<ul>
+<li>die momentan eingestellte Wunschwas-
+serhärte bei Normalbetrieb</li>
+<li>den Status des Leckageschutzes bzw.
+Leckagealarms</li>
+<li>die voraussichtliche Reichweite des
+Salzvorrats</li>
+<li>den Füllgrad des Salzvorrats in 10%-
+Schrittweite</li>
+<li>den aktuellen Wasserdurchfluss in Liter
+pro Stunde.
+Bedienung
+<em>Über die Schaltfläche Bedienung sind fol-</em> gende Funktionen wählbar:</li>
+<li>Salz nachfüllen
+INFO_NO_HEADER ie Nachfüllmenge 25 kg lässt sich direkt über die Schaltfläche  <em>25 kg speichern.</em>
+Eine abweichende Nach-füllmenge über Schaltfläche  <em>5 - 50 kg speichern.</em></li>
+<li>Wasser absperren</li>
+<li>Sleepmodus starten (d.h. aktive Ent-
+härtereinstellungen für eine gewisse Zeit aussetzen - siehe Anleitung des Geräts)</li>
+<li>Regeneration starten
+Einstellungen
+<em>Über die Schaltfläche Einstellungen las-</em> sen sich die Voreinstellungen des Geräts ändern:</li>
+<li>WunschWasserhärte</li>
+<li>Wasserszenenhärte</li>
+<li>Wasserszenendauer</li>
+<li>Leckageschutz</li>
+<li>Salzvorrat
+INFO_NO_HEADERÜber diese Schaltfläche lässt sich die aktuelle Füllmenge des Salzvorrats korrigieren.
+Wasserverbrauchsdiagramme Über diese Schaltfläche lässt sich der Was-serverbrauch in unterschiedlichen, zurück-liegenden Zeitabschnitten betrachten. Aus der Diagramm-Anzeige kann ein pdf erzeugt werden, das sich je nach Wunsch bzw. Möglichkeiten auf dem mobilen Endgerät speichern oder weiterleiten lässt. Mit der Browser-Version lassen sich zusätzlich CSV-Daten in einer Datei speichern.
+Betriebsdaten Über diese Schaltfläche ist die seit der Inbe-triebnahme geflossene Gesamtwasser-menge sowie die Anzahl der Regeneratio-nen anzeigbar.
+Info
+Über die Schaltfläche Info werden Daten angezeigt, die für den Kundendienst rele-vant sind.
+5.7 Benutzerverwaltung und -ein-stellungen
+Im Kopfbereich der JU-Control App wird Folgendes angezeigt:</li>
+<li>der aktuelle Benutzer</li>
+<li>das Symbol zum Öffnen der Menüaus-
+wahl</li>
+<li>das Symbol zum Aufruf eventueller
+Benachrichtigungen.
+Abb. 3: Kopfbereich der JU-Control App 1 Aktueller Benutzer 2 Hauptmenü 3 Benachrichtigungen
+5.7.1 Menü öffnen Durch Klicken bzw. Tippen in den Bereich der Benutzeranzeige öffnet sich das Pull-down-Menü mit den entsprechenden Ein-stellmöglichkeiten und der Benutzerverwal-tung.
+5.7.2 Zusätzlichen Benutzer anle-gen
+INFO_NO_HEADERVoraussetzung zur Anlage eines neuen Benutzers in der JU-Control App ist ein zuvor angelegtes eigenes Benutzerkonto.
+So wird&#39;s gemacht: 1. Im Kopfbereich der JU-Control App
+<em>oben links auf Benutzer tippen bzw. kli-</em> cken. Das entsprechende Pull-down-Menü öffnet sich.</li>
+</ul>
+<ol start="2">
+<li><em>Schaltfläche Benutzerverwaltung</em> anwählen.</li>
+<li><em>Schaltfläche Weitere Benutzer anwäh-</em> len.</li>
+<li><em>Den neuen Benutzer in das Feld Benut-zername</em> eintragen.*
+5.7.3 Freigeschaltete Benutzer anzeigen
+So wird&#39;s gemacht: 1. Im Kopfbereich der JU-Control App
+<em>oben links auf Benutzer tippen bzw. kli-</em> cken. Das entsprechende Pull-down-Menü öffnet sich.</li>
+<li><em>Schaltfläche Benutzerverwaltung</em> anwählen.</li>
+<li><em>Schaltfläche Freigeschaltete Benutzer</em> anwählen.
+Die angelegten Benutzer werden ange-zeigt.
+5.7.4 Mögliche Benutzereinstellun-gen
+<em>Menü Benutzereinstellungen öffnen:</em> 1. Im Kopfbereich der JU-Control App
+links oben auf den Benutzer klicken bzw. tippen. Das Pulldown-Menü öffnet sich.</li>
+<li><em>Menüpunkt Einstellungen anwählen.</em> Das Pulldown-Menü mit den möglichen Einstellungen erscheint.
+<em>Schaltfläche Sprache Ändern</em>
+Abb. 4: Gewünschte Sprache auswäh- <em>len über Schaltfeld Sprache ändern</em>
+<em>Schaltfläche Registrierungsdaten ändern</em>
+Abb. 5: Nachträglich persönliche Daten ändern über Schaltfeld  <em>Registrierungsdaten ändern</em>
+<em>Schaltfläche Startseite auswählen:</em> Anzeige nach Start der JU-Control App festlegen
+Abb. 6: Anzeige nach dem Starten der JU-Control App über Schaltflä- <em>che Startseite auswählen festle-</em> gen (Anzeige alle Geräte oder Übersicht mehrere Standorte)
+<em>Schaltfläche Meldungseinstellungen:</em> Benachrichtigungsmodus für Meldungen festlegen
+Abb. 7: Festlegen, auf welchem Weg Meldungen (z. B. wegen Salz-mangel) erfolgen sollen: über E-Mail, SMS oder Push-Nachricht
+INFO_NO_HEADERVoraussetzung für die Funktionalität ist der korrekte Eintrag von E-Mail-Adresse bzw. Mobilfunknummer in den Registrierungsdaten.
+<em>Schaltfläche Passwort ändern:</em> Passwort für das Benutzerkonto ändern
+So wird&#39;s gemacht: 1. Bisheriges Passwort eingeben. 2. Neues Passwort eingeben. 3. Neues Passwort wiederholen. 4. Speichern.
+Das Passwort des Benutzerkontos wird geändert.
+5.8 Benachrichtigungen Benachrichtigungen anzeigen Das Glocken-Symbol anwählen, um even-tuell vorhandene Benachrichtigungen (z. B. Salzmangelmeldung, Wartungsaufforde-rung) anzuzeigen:
+Mögliche Funktionen Das Menü-Symbol anwählen, um die Aus-wahl der möglichen Funktionen anzuzeigen:
+5.8.1 Mögliche Funktionen Das Menü-Symbol anwählen, um die Aus-wahl der möglichen Funktionen anzuzeigen:
+<em>Schaltfläche Ereignisliste</em>
+Abb. 8:  <em>Über die Schaltfläche Ereignis-liste lassen sich die letzten Mel-</em> dungen der Geräte ansehen.
+<em>Schaltfläche Betriebsanleitungen</em>
+Abb. 9:  <em>Über die Schaltfläche Betriebs-anleitungen lassen sich die</em> Betriebsanleitungen für die Geräte auswählen und anzei-gen.
+<em>Schaltfläche Service</em>
+Abb. 10:  <em>Über die Schaltfläche Service</em> sind die Kontaktdaten des JUDO Kundendiensts abrufbar.
+<em>Schaltfläche Zusätzliche Serviceadresse</em>
+Abb. 11:  <em>Die Schaltfläche Zusätzliche Serviceadresse (über Schaltflä-che Service aufrufbar) bietet die</em> Möglichkeit, die Kontaktdaten des gewünschten Fachhandwer-kers / Installateurs zu speichern.
+5.9 Benutzername oder Passwort vergessen?
+Falls die bei der Registrierung eingege-benen Angaben für Benutzername oder Passwort für eine spätere Anmeldung nicht mehr bekannt sind:
+<em>den Link Benutzername oder Passwort vergessen? anwählen.</em>
+falls der Benutzername nicht mehr bekannt ist: E-Mail Adresse, die für die Registrierung verwendet wurde, einge- <em>ben und das Feld Benutzername anfor-dern anwählen.</em>
+Der Benutzername wird an die eingege-bene E-Mail Adresse gesandt.
+falls das Passwort nicht mehr bekannt ist: Benutzername und E-Mail Adresse, die für die Registrierung ver-wendet wurde, eingeben und das Feld  <em>Passwort anfordern anwählen.</em> Ein Link zum Ändern des Passworts wird an die eingegebene E-Mail Adresse gesandt.
+<em>Den Link hier in der E-Mail anwählen</em> und das Passwort ändern. Für die nächste Anmeldung im Benut-zerkonto das neue Passwort verwen-den.
+6 Steuerung über Amazon Alexa
+INFO_NO_HEADERUm die Sprachsteuerung Amazon Alexa zur Bedienung des Geräts nut-zen zu können, ist Folgendes not-wendig:</li>
+</ol>
+<ul>
+<li>ein Amazon Echo Gerät oder ein mobiles Endgerät mit Amazon App</li>
+<li>ein Netzwerkzugang Falls mit der JU-Control App meh-rere Geräte verbunden sind, ist die Sprachsteuerung nur für eines der Geräte möglich.
+Der JUDO Skill lässt sich auf unterschiedli-che Weise aktivieren:</li>
+<li>in der Alexa App, oder</li>
+<li>über den Webbrowser
+JUDO Skill in der Alexa App aktivieren 1. Alexa App aus dem jeweiligen App
+Store (Apple App Store / Google Play Store) herunterladen.</li>
+</ul>
+<ol start="2">
+<li><em>Skills und Spiele im Menü der Alexa</em> App auswählen.</li>
+<li><em>In die Suchleiste den Skill JUDO einge-</em> ben.</li>
+<li>JUDO Skill aktivieren. Die Konfigurationsseite des JUDO Skills öffnet sich.</li>
+<li>Auf der Konfigurationsseite das Benut-zerkonto für die JU-Control App (siehe Kapitel 5.3) mit dem JUDO Skill ver-knüpfen.</li>
+<li>Das JUDO Gerät auswählen, das über Amazon Alexa gesteuert werden soll. Der Skill ist aktiv, und das ausgewählte Gerät lässt sich per Sprachbefehl steu-ern.
+JUDO Skill über den Webbrowser aktivie-ren 1. Über den Webbrowser die Webseite
+<a href="https://www.amazon.de/skills">https://www.amazon.de/skills</a> aufrufen.</li>
+<li>Mit den Zugangsdaten des persönli-chen Amazon-Accounts anmelden.</li>
+<li>Zum JUDO Skill navigieren (über die verfügbaren Kategorien oder direkt über die Suche).</li>
+<li>JUDO Skill aktivieren. Die Konfigurationsseite des JUDO Skills öffnet sich.</li>
+<li>Auf der Konfigurationsseite das Benut-zerkonto für die JU-Control App (siehe Kapitel 5.3) mit dem JUDO Skill ver-knüpfen.</li>
+<li>Das JUDO Gerät auswählen, das über Amazon Alexa gesteuert werden soll. Der Skill ist aktiv, und das ausgewählte Gerät lässt sich per Sprachbefehl steu-ern.
+Verfügbare Sprachbefehle Eine Liste der möglichen Sprachbefehle steht auf der JUDO Webseite unter <a href="https://judo.eu/produkte/alexa/">https://judo.eu/produkte/alexa/</a> zur Verfü-gung.
+7 Lokale Schnittstelle: REST API
+Die REST API ermöglicht den Zugriff auf Parameter und Funktionen eines Geräts, das mit dem JUDO Connectivity-Modul mit WLAN-Funktion ausgestattet ist.
+Über die Schnittstelle ist es möglich,</li>
+</ol>
+<ul>
+<li>Einstellungen am Gerät vorzunehmen
+und den Betriebsstatus zu lesen.</li>
+<li>den Datenaustausch mit den Bedien-
+und Anzeige-Elementen des Geräts in eine lokale Smart Home Steuerung zu integrieren.
+Voraussetzung zur Nutzung der Schnitt-stelle:</li>
+<li>das JUDO-Gerät ist mit einem Connec-
+tivity-Modul ausgestattet und entweder per LAN oder per WLAN mit dem Heim-netzwerk verbunden.
+Kommunikationsmodus:</li>
+<li>Die Daten des Geräts werden JSON-
+kodiert übertragen.</li>
+<li>Der Zugriff auf die REST API wird stan-
+dardmäßig per HTTP Basic Authentica-tion geschützt.
+Anmeldedaten:</li>
+<li>Die Anmeldedaten für die Authentifizie-
+rung sind identisch mit den Anmelde-daten des WEB Interface (siehe Kapitel 4.1).
+Zugang WEB Interface:</li>
+<li>http://</li>
+<li><a href="http://connectivity-XXXXX">http://connectivity-XXXXX</a> (XXXXX
+steht als Platzhalter für die letzten 5 Stellen der jeweiligen Seriennummer - <em>siehe Übersicht Info im Web Interface)</em>
+REST API URL:</li>
+<li>http://</li>
+<li><a href="http://connectivity-XXXXX">http://connectivity-XXXXX</a> (XXXXX
+steht als Platzhalter für die letzten 5 Stellen der jeweiligen Seriennummer - <em>siehe Übersicht Info im Web Interface)</em>
+Einbinden des Geräts in eine Netz-werk-Infrastruktur:</li>
+<li>siehe Kapitel 4.1
+INFO_NO_HEADERBei Tests mit einem Web-Browser kann es wegen des genutzten HTTP-Protokolls zu Sicherheitswarnungen  <em>kommen. In diesem Fall unter Sicher-heits-Ausnahmeregel bestätigen ein Häkchen bei Diese Ausnahme dauer-haft speichern setzen. Dadurch wird</em> die Warnung für dieses Zertifikat in Zukunft nicht mehr angezeigt.
+Die JUDO REST API lässt sich für fol-gende JUDO-Geräte verwenden:</li>
+<li>Enthärter i-soft, i-soft safe und i-soft
+SAFE+</li>
+<li>Leckageschutz ZEWA i-safe und
+bestehende Kombinationen mit Rück-spül-Schutzfiltern bzw. Hauswassersta-tionen</li>
+<li>Dosierpumpe i-dos eco</li>
+<li>Heizungsbefüllung i-fill
+Gerätetyp abfragen Der Gerätetyp lässt sich mit dem Befehl FF00 abfragen. Das Gerät antwortet mit dem Gerätetyp des angeschlossenen Geräts. Anfrage an REST API: GET/api/rest/FF00 Antwort von REST API: HTTP/1.1 200 OK Content-Type: application/json; charse-t=iso-8859-1 [„data“:„37“]
+Kommunikationsablauf Die Anfrage wird als HTTP GET Befehl an das Connectivity-Modul gestellt: Anfrage an REST API: GET/api/rest/0600 HTTP/1.1 Accept: application/json, text/javascript Authorization: Basic = Antwort von REST API: HTTP/1.1 200 OK Content-Type: application/json; charse-t=iso-8859-1 [„data“:„31d40000“]
+INFO_NO_HEADER ie in „data“ gekapselten Daten werden als HEX-Zeichenkette übergeben.
+Fehlermeldungen Wenn eine Anfrage nicht beantwor-tet wird oder wenn der Aufbau für das Kommando falsch ist, wird eine Feh-lermeldung vom Connectivity-Modul zurückgegeben. Allgemeine Fehlermeldungen: RestApiErrorInvalidArgument = -1 RestApiErrorInvalidMessage = -2 RestApiErrorBufferTooSmall = -3, (max. 80 Bytes) RestApiErrorBufferBusy = -4 HTTP/1.1 500 Internal Server Error Wenn die Argumente falsch sind (RestApiErrorInvalidArgument) oder zu lang sind (RestApiErrorBufferTooS-mall). HTTP/1.1 400 Bad Request Wenn keine Argumente vorhanden sind oder das Kommando nicht erlaubt ist, folgt RestApiErrorInvalidMessage. HTTP/1.1 429 Too Many Requests\r \nRetry-After: 2 Wenn ein Request nicht zeitnah (1,5 Sekunden, RestApiErrorBufferBusy) verarbeitet werden kann: (Hinweis: Retry nach 2 sec), z. B. das Steuerge-rät antwortet nicht. Spezielle Fehlermeldungen der Geräte-steuerung: Wenn die Antwort nicht auswertbar ist, wird eine Error-Response zurückgege-ben. Die Response startet mit 0xFF. Fehlerauflistung für Kommunikations-fehler: 0: if not enough bytes received 1: if internal checksum is incorrect 2: if data (bytes 0,1) are not as expec-ted 3: if functioncode (bytes 2,3) is not as expected 4: if an error response was received 5: if a formally correct response was received.
+INFO_NO_HEADERBeispiel für 1 (if checksum is incorrect)
+Internal checksum der Response vom Steuergerät nicht in Ordnung: Response: FF0001
+Unterstützte Kommandos</li>
+<li>Die vom jeweiligen Gerätetyp unter-
+stützten Kommandos sind in der Tabelle
+<em>JUDO REST API - Geräte und Kom-mandos</em>
+auf der JUDO Webseite unter <a href="https://judo.eu/produkte/api/">https://judo.eu/produkte/api/</a> beschrie-ben.
+8 Datenschutzerklärung Die JUDO Wasseraufbereitung GmbH erhebt, verarbeitet und nutzt im Rahmen der Installation, Wartung, Reparatur und dem Betrieb von JUDO Wasseraufberei-tungsgeräten ausschließlich zur vertragli-chen Abwicklung die nachfolgend genann-ten Daten, die nicht an Dritte weitergegeben werden:</li>
+<li>Gerätespezifische Daten (lnbetriebnah-
+medaten, Gerätetyp, Gerätenummer)</li>
+<li>Name und Kontaktdaten des Installa-
+teurs (Firma, Vorname, Nachname, Land, Straße, Hausnummer, PLZ, Stadt, Telefonnummer und E-Mail)</li>
+<li>Einbauort (Land, Straße, Hausnummer, PLZ und Ort)</li>
+<li>Kundenregistrierungsdaten (Benutzer-name, Vorname, Nachname, Land, Straße, Hausnummer, PLZ, Ort, Tele-fonnummer Festnetz, Telefonnummer Mobil und E-Mail)</li>
+<li>lnbetriebnahmedaten (lnbetriebnahme-datum)</li>
+<li>Konfigurationsdaten der Wasseraufbe-reitungsgeräte</li>
+<li>Einstellungen der Wasseraufberei-tungsgeräte (Rohwasserhärte, Wunsch-wasserhärte, Grenzwerteinstellungen des Leckageschutzes)</li>
+<li>Ereignisse und Störmeldungen.
+Die Speicherung der Daten dient folgenden Zwecken:</li>
+<li>Mit den gerätespezifischen Daten ist
+eine Identifizierung auf den Servern der JUDO Wasseraufbereitung GmbH mög-lich.</li>
+<li>Mit den Kontaktdaten des Installateurs (sofern diese eingegeben wurden) kann im Störfall oder bei einer notwendigen Wartung Verbindung aufgenommen werden.</li>
+<li>Mit den Daten der Aktivierung bzw. Inbetriebnahme und denen des Einbau-ortes kann die Zuordnung der zustän-
+digen Kundendienststelle und der genauen Ortsbestimmung des Wasser-aufbereitungsgerätes erfolgen.</li>
+<li>Die Registrierungsdaten ermöglichen JUDO die Kontaktaufnahme mit dem Kunden, z. B. bei notwendigen Kunden-dienstbesuchen.</li>
+<li>Die lnbetriebnahmedaten ermöglichen dem JUDO Kundendienst eine optimale Beratung bei Störfällen und eine opti-male Vorarbeit bei Kundendiensteinsät-zen und Wartungsarbeiten.</li>
+<li>Für letztere dient die Datenübertragung im Störfall: Der JUDO Kundendienst erhält Informationen über die Art der gemeldeten Störung sowie die Daten-übertragung im laufenden Betrieb (die Datenübertragung erfolgt über eine ver-schlüsselte TLS Verbindung zwischen dem Wasseraufbereitungsgerät und dem Endgerät des Nutzers über Server der JUDO Wasseraufbereitung GmbH -es werden keine Verbindungsdaten auf-gezeichnet).
+Die Verbindung ermöglicht im laufenden Betrieb eine externe Erreichbarkeit über das Internet mit folgenden Funktionen:</li>
+<li>Einstellungsänderungen vom Endgerät
+(z. B. Smartphone) des Nutzers an das Wasseraufbereitungsgerät</li>
+<li>Sendung von Anzeigedaten vom Was-seraufbereitungsgerät an das Endgerät des Nutzers</li>
+<li>Meldungen vom Wasseraufbereitungs-gerät an das Endgerät des Nutzers</li>
+<li>Auskunftsrecht, Berichtigung, Löschung und Sperrung von Daten, Recht auf Widerruf.
+Auf Anfrage erhalte ich jederzeit unent-geltlich Auskunft über die zu meiner Per-son gespeicherten Daten, über deren Her-kunft, über die Empfänger sowie über den Zweck der Speicherung. Die Auskunft kann ich unter folgenden Kontaktdaten einholen: <a href="mailto:Kundendienst@judo.eu">Kundendienst@judo.eu</a>.
+Ich habe das Recht, dass die von mir gespeicherten Daten ggf. zu berichtigen, zu sperren oder zu löschen sind. Ferner kann ich meine Einwilligung zur Nutzung von freiwillig angegebenen personenbe-zogenen Daten jederzeit mit Wirkung für die Zukunft ganz oder teilweise widerrufen. Hierzu genügt eine formlose Mitteilung an <a href="mailto:Kundendienst@judo.eu">Kundendienst@judo.eu</a>. Die JUDO Wasser-aufbereitung GmbH wird dann die betreffen-den Daten löschen, sofern dem gesetzliche Regelungen nicht entgegenstehen.
+Im Übrigen werden wir Ihre Daten mit voll-ständiger Abwicklung des Vertragsverhält-nisses löschen. An die Stelle der Löschung tritt eine Sperrung, soweit einer Löschung gesetzliche, satzungsmäßige oder vertragli-che Aufbewahrungsfristen entgegenstehen.
+Version: 1.0 Datum: 2017-01-01
+9 Kundendienst
+DE
+JUDO Wasseraufbereitung GmbH Postfach 380 • D-71351 Winnenden Tel. +49 (0)7195 / 692-0 E-mail: <a href="mailto:info@judo.eu">info@judo.eu</a> • judo.eu
+AT
+JUDO Wasseraufbereitung GmbH • Niederlassung Österreich Josef-Sandhofer-Straße 15 • A-2000 Stockerau Tel. +43 (0)22 66 / 6 40 78 • Fax +43 (0)22 66 / 6 40 79 E-mail: <a href="mailto:info@judo-online.at">info@judo-online.at</a> • judo-online.at
+CH
+JUDO Wasseraufbereitung AG Industriestrasse 15 • CH-4410 Liestal Tel. +41 (0)61 906 40 50 • Fax +41 (0)61 906 40 59 E-mail: <a href="mailto:info@judo-online.ch">info@judo-online.ch</a> • judo-online.ch
+BENELUX
+JUDO Wasseraufbereitung GmbH • Filiaal - Filiale Benelux Laarbeeklaan - Av. du Laerbeek, 72 A1 • B-1090 Brussel-Bruxelles Tel./Tél. +32 (0)24 60 12 88 • Fax +32 (0)24 61 18 85 E-mail: <a href="mailto:info.benelux@judo.eu">info.benelux@judo.eu</a> • judo.eu
+FR
+JUDO France SARL 76 Rue de la Plaine des Bouchers (Technosud) • F-67100 Strasbourg Tel. +33 (0)3 88 65 93 94 • Fax +33 (0)3 88 65 98 49 E-mail : <a href="mailto:info@judo.fr">info@judo.fr</a> • judo.fr
+Eingebaut durch / am:
+Sämtliche Bild-, Maß- und Ausführungsangaben entsprechen dem Tag der Drucklegung. Änderungen, die dem technischen Fortschritt und der Weiterentwicklung dienen, behalten wir uns vor. Modell- und Produktansprüche können nicht geltend gemacht werden.</li>
+</ul>

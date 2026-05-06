@@ -1,0 +1,1029 @@
+<p>Enthärter i-soft SAFE+ Gerätetyp 0x33  (51 dez) und Gerätetyp 0x57 (87 dez) mit Leckageschutz i-soft K SAFE+ Gerätetyp 0x42  (66 dez) und Gerätetyp 0x67 (103 dez)
+Parameter Kommando (hex) Länge (byte) Anmerkungen Beispielkommando
+Wunschwasserhärte lesen 51 2 2 byte Antwort Wunschwasserhärte /api/rest/5100      data=&#34;0600&#34;     6°dH
+Regeneration starten 35 1 Start = 00 /api/rest/350000
+Wunschwasserhärte schreiben 30  1/ 2 1 byte: Härte in °dH wird in Geräteeinheit umgerechnet ODER
+2 byte: Härte in Geräteeinheit ohne Komma (also 17,8 --&gt; 178)
+/api/rest/300007       7°dH
+/api/rest/30000A00    10°dH
+Salzvorrat lesen oder schreiben 56 2 ohne Data:
+4 byte antwort:
+2byte Salzgewicht
+2byte Salzreichweite in Tagen
+mit 2 byte Data:
+absolutes Salzgewicht in gramm
+/api/rest/5600
+data=f6541100    f654 = 21750g, 1100 = 17 Tage
+schreiben:
+/api/rest/56004448    = 18500g
+Salzreichweitenmangelwarnung lesen und
+schreiben
+57 Ohne Data:
+Salzreichweitenmangelwarnung in Tagen
+Mit Data:
+1 byte:    Setzt Reichweitenmangelwarnung auf x Tage
+/api/rest/570014     Setzt Reichweitenmangel auf 20 Tage
+Härteeinheit schreiben 24 1 0 °dH , 1 °eH , 2 °fH , 3 gpg , 4 ppm , 5 mmol , 6 mval /api/rest/240004  Einheit ppm
+Härteeinheit lesen 23 1 0 °dH , 1 °eH , 2 °fH , 3 gpg , 4 ppm , 5 mmol , 6 mval data=00   Einheit °dH
+Max. Entnahmdauer schreiben 3E 1 max. Entnahmezeit in Minuten 1-255 Minuten, 0 deaktiviert
+überwachung
+/api/rest/3E0028  Entnahmedauer max. 40min
+Max. Entnahmemenge schreiben 3F 2 max. Durchfluss in Liter/Stunde 1- 65535 l/h, 0 deaktiviert
+überwachung
+/api/rest/3F00C409    2500ltr/h
+Max. Volumenstrom schreiben 40 2 max. Wassermenge am Stück in Liter 1- 65535 l , 0 deaktiviert
+überwachung
+/api/rest/4000F401    500ltr
+Leckageschutz schliessen 3C 0 /api/rest/3C00
+Leckageschutz öffnen 3D 0 /api/rest/3D00
+Urlaubsmodus schreiben 41 0/1 Start Urlaubsmodus
+1 byte:
+Bit 0 = 1  Urlaubsmodus aktiv
+Bit 1 = 1 U1
+Bit 2 = 1 U2
+Bit 3 = 1 U3
+Bit 4 = unused
+Bit 5 = 1 Mikroleckage (0 = Nur Melden , 1 = Melden und schliessen)
+Bit 6 = 1 Automatischer Mikroleckagetest (1= Aktiv)
+Bit 7 = 1 Leckagealarm/schutz global AUS (1=AUS)
+/api/rest/410003  U1 aktivieren
+Gerätetyp lesen FF 1 1 byte Gerätetyp /api/rest/FF00
+data=&#34;33&#34;
+Gerätenummer lesen 6 4 4 byte Gerätenummer /api/rest/0600
+data=64d90100  entspricht  121188
+SW-Version Gerätesteuerung lesen 1 3 3 byte SW-Version /api/rest/0100
+data=6b1502 entspricht 2.21k
+Inbetriebnahmedatum lesen E 4
+Betriebsstundenzähler 25 4 4 byte Betriebsstunden
+1 byte Minuten
+1 byte Stunden
+2 byte Tage
+data=060c7500  117Tage, 12h, 6 min.
+Kundendienst/Serviceadresse 58 16 Servicetelefonnummer ASCII, ohne datenbytes = lesen, 16 bytes data
+schreiben.
+data=2b343920373139352036393235313720
+ASCII umsetzung: +49 7195 692517
+Gesamtwassermenge lesen 28 4 Wassermenge in liter lsb first /api/rest/2800
+data=EC221000    1057,516 m³
+Weichwassermenge lesen 29 4 Weichwassermenge in liter lsb first /api/rest/2900
+data=2EDC0000    56,366 m³
+Tagesstatistik FB 4 32 byte:Es werden die Gesamttageswerte für den angefragten Tag
+zurückgeliefert:
+1-4 Byte: 0:00
+5-8 Byte: 3:00
+9-12 Byte: 6:00
+13-16 Byte: 9:00
+17-20 Byte: 12:00
+21-24 Byte: 15:00
+25-28 Byte: 18:00
+29-32 Byte: 21:00
+/api/rest/FB000D0807E7
+Tagesdaten vom 13.08.2023
+Wochenstatistik FC 3 28 byte:
+Es werden alle Gesamtwerte der Tage der angefragten Woche
+zurückgeliefert:
+1-4 Byte: Montag
+5-8 Byte: Dienstag
+9-12 Byte: Mittwoch
+13-16 Byte: Donnerstag
+17-20 Byte: Freitag
+21-24 Byte: Samstag
+25-28 Byte: Sonntag
+/api/rest/FC002007E7
+Wochendaten aus KW32 2023
+Monatsstatistik FD 3 124 byte:
+Es werden alle Tage des angefragten Montats zurück geliefert max 31
+Tage
+Byte 1-4: Tag1
+Byte 5-8: Tag2
+…..
+Byte 121-124: Tag 31
+/api/rest/FD000807E7
+Monatsdaten aus August 2023
+Jahresstatistik FE 2 48 byte:
+Es wird die Gesamtsumme des Verbrauchs  jedes Monats des
+angefragen Jahres zurück geliefert
+1-4 Byte: Januar
+5-8 Byte: Februar
+9-12 Byte: März
+13-16 Byte: April
+17-20 Byte: Mai
+21-24 Byte: Juni
+25-28 Byte: Juli
+29-32 Byte: August
+33-36 Byte: September
+37-40 Byte: Oktober
+41-44 Byte: November
+45-48 Byte: Dezember
+/api/rest/FE0007E7
+Jahresdaten aus 2023
+Wasserstatistik
+Betriebsstatus
+Bedienung
+Infodaten
+Betriebsdaten
+Einstellungen
+Enthärter i-soft PRO Gerätetyp 0x58  (88 dez) mit Leckageschutz i-soft PRO Gerätetyp 0x4b  (75 dez)
+i-soft PRO L Gerätetyp 0x4c  (76 dez)
+Parameter Kommando (hex) Länge (byte) Anmerkungen Beispielkommando
+Wunschwasserhärte lesen 51 2 2 byte Antwort Wunschwasserhärte /api/rest/5100      data=&#34;0600&#34;     6°dH
+Regeneration starten 35 1 Start = 00 /api/rest/350000
+Szene Sofortaktivierung 36 1 byte szenennummer 1..9 + A
+2 byte Dauer in HH:MM
+&#39;Dauer: 000F, 001E, 002D, 0100, 0200,0600,0C00, FFFF - unendlich
+/api/rest/36000200200  Szene2 für 2:00 Stunden aktivieren
+Szene 0: Alltag meistern
+Szene 1: Körper pflegen
+Szene 2: Garten Bewässern
+Szene 3: Urlaub geniessen
+Szene 4: Wäsche waschen
+Szene 5: Hochdruckreinigen
+Szene 6: Pool befüllen
+Szene 7: Heizung befüllen
+Szene 8: Custom Szene 1
+Szene 9: Custom Szene 2
+Szene A: Custom Szene 3
+Szene einstellen / editieren 37 1 byte Szenennummer 1..10
+1 byte Wasserhärte in °dH
+1 byte Wasserhärte in °f, mmol*10, ppm/10
+1 byte Leckageschutz (0 = deaktiviert, 1 = aktiv)
+1 byte Leckageschutz Entnahmemenge (0 = deaktiviert, 1 = aktiv)
+1 byte Leckageschutz Durchflussmenge (0 = deaktiviert, 1 = aktiv)
+1 byte Leckageschutz Entnahmezeit (0 = deaktiviert, 1 = aktiv)
+1 byte Favoritenauswahl (0 = deaktiviert, 1 = aktiv)
+1 byte Zeitsteuerung an/aus
+Für normale Szene: {
+1 byte akPve Tage ( je Tag Sa..So 1 bit 1,2,4,8,16,32,64)
+2 byte Startzeit in HH:MM
+2 byte Endzeite in HH:MM
+}
+Für Szene &#34;Urlaub genießen&#34;: {
+2 byte Startdatum Jahr
+1 byte Startdatum Monat
+1 byte Startdatum Tag
+2 byte Stopdatum Jahr
+1 byte Stopdatum Monat
+1 byte Stopdatum Tag
+}
+oder
+1 Byte Szenennummer:  liefert aktuelle Einstellung der Szene wie oben
+Kodiert zurück
+Beispiel reguläre Szene:
+/api/rest/370001060B01010001010107080F0E1E
+Szene 1 auf 6°dH, Leckageschutz an für Entnahmemenge und -
+zeit, als Favorit anzeigen und am Mo,Di und Mi von 8:15 bis
+14:30 aktivieren.
+Es können nur bestehende Szenen eingestellt werden. Es ist
+nicht möglich, neue Szenen zu erstellen! Dies muss einmalig am
+Gerät durchgeführt werden.
+Beispiel Urlaubsmodus:
+/api/rest/37000308010001000101E8070601E8070704
+Szene Urlaubsmodus auf 8°dH, Leckageschutz für
+Volumenstrombegrenzung an, als Favorit markieren, Start am
+1.6.2024 bis 4.7.2024
+Szene zurücksetzen 38 1 byte szenennummer 1..10 auf Grundeinstellung setzen /api/rest/380001   Szene 1 zurücksetzen
+Einstellungen
+Wunschwasserhärte schreiben 30  1/ 2 1 byte: Härte in °dH wird in Geräteeinheit umgerechnet /api/rest/300007       7°dH
+Salzvorrat lesen oder schreiben 56 2 ohne Data:
+4 byte antwort:
+2byte Salzgewicht
+2byte Salzreichweite in Tagen
+/api/rest/5600
+data=f6541100    f654 = 21750g, 1100 = 17 Tage
+Salzreichweitenmangelwarnung lesen und
+schreiben
+57 Ohne Data:
+Salzreichweitenmangelwarnung in Tagen
+Mit Data:
+1 byte:    Setzt Reichweitenmangelwarnung auf x Tage
+/api/rest/570014     Setzt Reichweitenmangel auf 20 Tage
+Härteeinheit schreiben 24 1 0 °dH , 2 °fH /api/rest/240001 Einheit °dH
+Härteeinheit lesen 23 1 0 °dH , 2 °fH data=00   Einheit °dH
+Max. Entnahmdauer schreiben 3E 1 max. Entnahmezeit in Minuten 1-255 Minuten, 0 deaktiviert
+überwachung
+ohne Data liefert aktuellen Wert des Gerätes zurück
+/api/rest/3E0028  Entnahmedauer max. 40min
+Max. Entnahmemenge schreiben 3F 2 max. Wassermenge in Liter 1- 3000 l, 0 deaktiviert überwachung
+ohne Data liefert aktuellen Wert des Gerätes zurück
+/api/rest/3F00C409    2500ltr
+Max. Volumenstrom schreiben 40 2 max. Durchfluss am Stück in Liter/Stunde 1- 5000 l/h, 0 deaktiviert
+überwachung
+ohne Data liefert aktuellen Wert des Gerätes zurück
+/api/rest/4000F401    500ltr/h
+Leckageschutz schliessen 3C 0 /api/rest/3C00
+Leckageschutz öffnen 3D 0 /api/rest/3D00
+Urlaubsmodus schreiben 41 0/1 Start Urlaubsmodus
+1 byte:
+Bit 0 = 1  Urlaubsmodus aktiv
+Bit 1 = unused
+Bit 2 = unused
+Bit 3 = unused
+Bit 4 = unused
+Bit 5 = 1 Mikroleckage (0 = Nur Melden , 1 = Melden und schliessen)
+Bit 6 = 1 Automatischer Mikroleckagetest (1= Aktiv)
+Bit 7 = 1 Leckagealarm/schutz global AUS (1=AUS)
+1 byte:
+Urlaubsdauer in Tagen
+/api/rest/41000105  Urlaubsmodus aktivieren 5Tage
+Infodaten
+Gerätetyp lesen FF 1 1 byte Gerätetyp /api/rest/FF00
+data=&#34;58&#34;
+Gerätenummer lesen 6 4 4 byte Gerätenummer /api/rest/0600
+data=10D36F28  entspricht  282292008
+SW-Version Gerätesteuerung lesen 1 3 3 byte SW-Version /api/rest/0100
+data=0C0001 entspricht 1.0.12
+Inbetriebnahmedatum lesen E 4 4 byte
+1 byte Tag
+1 byte Monat
+2 byte Jahr
+Betriebsstundenzähler 25 4 4 byte Betriebsstunden
+1 byte Minuten
+1 byte Stunden
+2 byte Tage
+data=060c7500  117Tage, 12h, 6 min.
+Kundendienst/Serviceadresse 58 16 Servicetelefonnummer ASCII, ohne datenbytes = lesen, 16 bytes data
+schreiben.
+data=2b343920373139352036393235313720
+ASCII umsetzung: +49 7195 692517
+Betriebsstatus
+Bedienung
+Betriebsdaten
+Gesamtwassermenge lesen 28 4 Wassermenge in liter lsb first /api/rest/2800
+data=EC221000    1057,516 m³
+Weichwassermenge lesen 29 4 Weichwassermenge in liter lsb first /api/rest/2900
+data=2EDC0000    56,366 m³
+Wasserstatistik
+Tagesstatistik FB 4 Es werden die Gesamttageswerte für den angefragten Tag
+zurückgeliefert, sofern Daten vorhanden je 4 byte:
+1 byte Stunde, 3 byte Menge
+z.B.
+&#34;data&#34;:
+&#34;000000050100000002000000030000000400000A0500000F06000000&#34;
+00:00 5liter
+01:00 0
+02:00 0
+03:00 0
+04:00 10liter
+05:00 15liter
+06:00 0 Liter
+/api/rest/FB001506E807
+Tagesdaten vom 21.06.2024
+Wochenstatistik FC 3 Es werden die Gesamtwerte der Tage der angefragten Woche
+zurückgeliefert, sofern Daten vorhanden je 4 byte:
+1 byte Tag (Mo=00), 3 byte Werte
+z.B.:
+&#34;data&#34;: &#34;000000000200000004000019&#34;
+Montag 0, Mittwoch 0, Freitag 19hex = 25liter
+/api/rest/FC0019E807
+Wochendaten aus KW25 2024
+Monatsstatistik FD 3 Es werden die Tageswerte des angefragten Montats zurück geliefert
+sofoern Daten vorhanden, max 31 Tage je 4 byte:
+1 byte Tag, 3 bytes Menge
+z.B.:
+&#34;data&#34;: &#34;03000000060000000B000000110000001300000015000019&#34;
+Tage 3,6,11,15 = 0, Tag 21 19hex = 25liter
+/api/rest/FD0006E807
+Monatsdaten aus Juni 2024
+Jahresstatistik FE 2 Es wird die Gesamtsumme des Verbrauchs des angefragen Jahres zurück
+geliefert, sofern Daten vorhanden je 4 byte:
+1 byte Monat, 3 bytes Menge
+z.B.:
+&#34;data&#34;: &#34;040000AA06000019&#34;
+Monat April   AA = 170liter,   Juni   19= 25liter
+/api/rest/FE00E807
+Jahresdaten aus 2024
+Volumenstromstatistik
+Tagesstatistik F7 4 Es werden die Gesamttageswerte für den angefragten Tag
+zurückgeliefert, sofern Daten vorhanden je 4 byte:
+1 byte Stunde, 3 Byte Daten
+&#34;data&#34;:
+&#34;0000067201000000020000000300000004000672050006A406000000&#34;
+00:00 672 - 1650ltr/h
+01:00 0
+02:00 0
+03:00 0
+04:00 672 - 1650ltr/h
+05:00 6A4 - 1700 ltr/h
+06:00 0
+/api/rest/F7001506E807
+Tagesdaten vom 21.06.2024
+Wochenstatistik F8 3 Es werden alle Gesamtwerte der Tage der angefragten Woche
+zurückgeliefert, sofern Daten vorhanden je 4 byte:
+1 byte Tag (Mo=00), 3 byte Menge
+&#34;data&#34;: &#34;0000000002000000040006A4&#34;
+Montag 0, Mittwoch 0, Freitag 6A4 - 1700Ltr/h
+/api/rest/F80019E807
+Wochendaten aus KW25 2024
+Monatsstatistik F9 3 Es werden alle Tage des angefragten Montats zurück geliefert
+sofoern Daten vorhanden, max 31 Tage je 4 byte:
+1 byte Monat, 3 Byte Menge
+&#34;data&#34;: &#34;03000000060000000B0000001100000013000000150006A4&#34;
+Tageswerte für Tag 3,6,11,17,19 und 21
+/api/rest/F90006E807
+Monatsdaten aus Juni 2024
+Jahresstatistik FA 2 Es wird die Gesamtsumme des Verbrauchs des angefragen Jahres zurück
+geliefert sofern Daten vorhanden je 4 byte:
+1 byte Monat, 3 bytes Menge
+z.B.:
+&#34;data&#34;: &#34;04008CA0060006A4&#34;
+Monat April  8CA = 2250 liter/h,   Juni   19= 1700liter/h
+/api/rest/FA00E807
+Jahresdaten aus 2024
+Salzverbrauchsstatistik
+Tagesstatistik F3 4 Es werden die Gesamttageswerte für den angefragten Tag
+zurückgeliefert, sofern Daten vorhanden je 4 byte:
+1 Byte Stunde, 3 byte Menge
+z.B.:
+&#34;data&#34;:
+&#34;0100000002000000030000000400000005000000060000000700000017
+000000&#34;
+Stundenwerte für Stunde 01, 02,03,04,05,06,07 und 23
+/api/rest/F3001306E807
+Tagesdaten vom 19.6.2024
+Wochenstatistik F4 3 Es werden alle Gesamtwerte der Tage der angefragten Woche
+zurückgeliefert, sofern Daten vorhanden je 4 byte:
+1Byte Wochentag (00-Montag), 3 Byte Menge
+z.B.:
+&#34;data&#34;: &#34;000000000200000004000000&#34;
+Tageswerte der Woche für Montag, Mittwoch und Freitag
+/api/rest/F40019E807
+Wochendaten aus KW25 2024
+Monatsstatistik F5 3 Es werden Tageswerte des angefragten Montats zurück geliefert,
+sofern Daten vorhanden immer 4 byte:
+1 byte Tag, 3 bytes Menge
+z.B.
+&#34;data&#34;: &#34;03000000060000000B000000110000001300000015000000&#34;
+für Tageswerte von Tag 3, 6, 11, 17, 19 und 21
+/api/rest/F50006E807
+Monatsdaten aus Juni 2024
+Jahresstatistik F6 2 Es wird die Gesamtsumme des Verbrauchs  jedes Monats des
+angefragen Jahres zurück geliefert, sofern Daten vorhanden
+immer 4 byte:
+1 byte Monat, 3 bytes Menge
+z.B. &#34;data&#34;: &#34;0400000006000000&#34;  für Monat April und Juni
+/api/rest/F600E807
+Jahresdaten aus 2024
+Enthärter i-soft Gerätetyp 0x32  (50 dez) und Gerätetyp 0x53   (83 dez) mit Leckagealarm i-soft K Gerätetyp 0x43  (67 dez) und Gerätetyp 0x54   (84 dez)
+Parameter Kommando (hex) Länge (byte) Anmerkungen Beispielkommando
+Wunschwasserhärte lesen 51 2 2 byte Antwort Wunschwasserhärte /api/rest/5100      data=&#34;0600&#34;     6°dH
+Regeneration starten 35 1 Start = 00 /api/rest/350000
+Wunschwasserhärte schreiben 30  1/ 2 1 byte: Härte in °dH wird in Geräteeinheit umgerechnet ODER
+2 byte: Härte in Geräteeinheit ohne Komma (also 17,8 --&gt; 178)
+/api/rest/300007       7°dH
+/api/rest/30000A00    10°dH
+Salzvorrat lesen oder schreiben 56 2 ohne Data:
+4 byte antwort:
+2byte Salzgewicht
+2byte Salzreichweite in Tagen
+mit 2 byte Data:
+absolutes Salzgewicht in gramm
+/api/rest/5600
+data=f6541100    f654 = 21750g, 1100 = 17 Tage
+schreiben:
+/api/rest/56004448    = 18500g
+Salzreichweitenmangelwarnung lesen
+und schreiben
+57 ohne Data:
+Salzreichweitenmangelwarnung in Tagen
+Mit Data:
+1 byte:    Setzt Reichweitenmangelwarnung auf x Tage
+/api/rest/570014     Setzt Reichweitenmangel auf
+20 Tage
+Härteeinheit schreiben 24 1 0 °dH , 1 °eH , 2 °fH , 3 gpg , 4 ppm , 5 mmol , 6 mval /api/rest/240004  Einheit ppm
+Härteeinheit lesen 23 1 0 °dH , 1 °eH , 2 °fH , 3 gpg , 4 ppm , 5 mmol , 6 mval data=00   Einheit °dH
+Max. Entnahmdauer schreiben 3E 1 max. Entnahmezeit in Minuten 1-255 Minuten, 0 deaktiviert überwachung /api/rest/3E0028  Entnahmedauer max. 40min
+Max. Entnahmemenge schreiben 3F 2 max. Durchfluss in Liter/Stunde 1- 65535 l/h, 0 deaktiviert überwachung /api/rest/3F00C409    2500ltr/h
+Max. Volumenstrom schreiben 40 2 max. Wassermenge am Stück in Liter 1- 65535 l , 0 deaktiviert überwachung /api/rest/4000F401    500ltr
+Leckagealarm setzen 3C 0 /api/rest/3C00
+Leckagealarm zurücksetzen 3D 0 /api/rest/3D00
+Gerätetyp lesen FF 1 1 byte Gerätetyp /api/rest/FF00
+data=&#34;32&#34;
+Gerätenummer lesen 6 4 4 byte Gerätenummer /api/rest/0600
+data=64d90100  entspricht  121188
+SW-Version Gerätesteuerung lesen 1 3 3 byte SW-Version /api/rest/0100
+data=6b1502 entspricht 2.21k
+Inbetriebnahmedatum lesen E 4
+Betriebsstundenzähler 25 4 4 byte Betriebsstunden
+1 byte Minuten
+1 byte Stunden
+2 byte Tage
+data=060c7500  117Tage, 12h, 6 min.
+Kundendienst/Serviceadresse 58 16 Servicetelefonnummer ASCII, ohne datenbytes = lesen, 16 bytes data schreiben. data=2b343920373139352036393235313720
+ASCII umsetzung: +49 7195 692517
+Gesamtwassermenge lesen 28 4 Wassermenge in liter lsb first /api/rest/2800
+data=EC221000    1057,516 m³
+Weichwassermenge lesen 29 4 Weichwassermenge in liter lsb first /api/rest/2900
+data=2EDC0000    56,366 m³
+Tagesstatistik FB 4 32 byte:Es werden die Gesamttageswerte für den angefragten Tag zurückgeliefert:
+1-4 Byte: 0:00
+5-8 Byte: 3:00
+9-12 Byte: 6:00
+13-16 Byte: 9:00
+17-20 Byte: 12:00
+21-24 Byte: 15:00
+25-28 Byte: 18:00
+29-32 Byte: 21:00
+/api/rest/FB000D0807E7
+Tagesdaten vom 13.08.2023
+Wochenstatistik FC 3 28 byte:
+Es werden alle Gesamtwerte der Tage der angefragten Woche zurückgeliefert:
+1-4 Byte: Montag
+5-8 Byte: Dienstag
+9-12 Byte: Mittwoch
+13-16 Byte: Donnerstag
+17-20 Byte: Freitag
+21-24 Byte: Samstag
+25-28 Byte: Sonntag
+/api/rest/FC002007E7
+Wochendaten aus KW32 2023
+Monatsstatistik FD 3 124 byte:
+Es werden alle Tage des angefragten Montats zurück geliefert max 31 Tage
+Byte 1-4: Tag1
+Byte 5-8: Tag2
+…..
+Byte 121-124: Tag 31
+/api/rest/FD000807E7
+Monatsdaten aus August 2023
+Jahresstatistik FE 2 48 byte:
+Es wird die Gesamtsumme des Verbrauchs  jedes Monats des angefragen Jahres zurück
+geliefert
+1-4 Byte: Januar
+5-8 Byte: Februar
+9-12 Byte: März
+13-16 Byte: April
+17-20 Byte: Mai
+21-24 Byte: Juni
+25-28 Byte: Juli
+29-32 Byte: August
+33-36 Byte: September
+37-40 Byte: Oktober
+41-44 Byte: November
+45-48 Byte: Dezember
+/api/rest/FE0007E7
+Jahresdaten aus 2023
+Wasserstatistik
+Betriebsstatus
+Bedienung
+Einstellungen
+Infodaten
+Betriebsdaten
+Enthärter SOFTwell P Gerätetyp 0x34 (52 dez)  und Gerätetyp 0x59  (dez 89) ohne Leckageschutz SOFTwell S Gerätetyp 0x35 (53 dez)  und Gerätetyp 0x63  (dez 99)
+SOFTwell K Gerätetyp 0x36 (54 dez)  und Gerätetyp 0x5A  (dez 90) SOFTwell KP Gerätetyp 0x47 (71 dez)  und Gerätetyp 0x62  (dez 98) SOFTwell KS Gerätetyp 0x48 (72 dez)  und Gerätetyp 0x64  (dez 100)
+Parameter Kommando (hex) Länge (byte) Anmerkungen Beispielkommando
+Gerätetyp lesen FF 1 1 byte Gerätetyp /api/rest/FF00
+data=&#34;34&#34;
+Gerätenummer lesen 6 4 4 byte Gerätenummer /api/rest/0600
+data=64d90100  entspricht  121188
+SW-Version Gerätesteuerung lesen 1 3 3 byte SW-Version /api/rest/0100
+data=670102 entspricht 2.01d
+Inbetriebnahmedatum lesen E 4
+Betriebsstundenzähler 25 4 4 byte Betriebsstunden
+1 byte Minuten
+1 byte Stunden
+2 byte Tage
+/api/rest/2500
+data=060c7500  117Tage, 12h, 6 min.
+Weichwassermenge lesen 29 4 Weichwassermenge in liter lsb first /api/rest/2900
+data=2EDC0000    56,366 m³
+Tagesstatistik FB 4 32 byte:Es werden die Gesamttageswerte für den
+angefragten Tag zurückgeliefert:
+1-4 Byte: 0:00
+5-8 Byte: 3:00
+9-12 Byte: 6:00
+13-16 Byte: 9:00
+17-20 Byte: 12:00
+21-24 Byte: 15:00
+25-28 Byte: 18:00
+29-32 Byte: 21:00
+/api/rest/FB000D0807E7
+Tagesdaten vom 13.08.2023
+Wochenstatistik FC 3 28 byte:
+Es werden alle Gesamtwerte der Tage der
+angefragten Woche zurückgeliefert:
+1-4 Byte: Montag
+5-8 Byte: Dienstag
+9-12 Byte: Mittwoch
+13-16 Byte: Donnerstag
+17-20 Byte: Freitag
+21-24 Byte: Samstag
+25-28 Byte: Sonntag
+/api/rest/FC002007E7
+Wochendaten aus KW32 2023
+Monatsstatistik FD 3 124 byte:
+Es werden alle Tage des angefragten Montats
+zurück geliefert max 31 Tage
+Byte 1-4: Tag1
+Byte 5-8: Tag2
+…..
+Byte 121-124: Tag 31
+/api/rest/FD000807E7
+Monatsdaten aus August 2023
+Jahresstatistik FE 2 48 byte:
+Es wird die Gesamtsumme des Verbrauchs  jedes
+Monats des angefragen Jahres zurück geliefert
+1-4 Byte: Januar
+5-8 Byte: Februar
+9-12 Byte: März
+13-16 Byte: April
+/api/rest/FE0007E7
+Jahresdaten aus 2023
+Wasserstatistik
+Infodaten
+Betriebsdaten
+Leckageschutzgerät ZEWA i-SAFE Gerätetyp 0x44
+Parameter Kommando
+(hex)
+Länge (byte) Anmerkungen Beispielkommando
+Meldung zurücksetzen 63 0 /api/rest/6300
+Leckageschutz schließen 51 0 /api/rest/5100
+Leckageschutz öffnen 52 0 /api/rest/5200
+Sleepmodus starten 54 0 /api/rest/5400
+Sleepmodus beenden 55 0 /api/rest/5500
+Urlaubsmodus starten 57 0 /api/rest/5700
+Urlaubsmodus beenden 58 0 /api/rest/5800
+Mikroleckageprüfung starten 5C 0 /api/rest/5C00
+Lernmodus starten 5D 0 /api/rest/5D00
+Abwesenheitslimits lesen 5E 6 je 2 byte: Grenzwert Durchfluss in l/h
+Grenzwert Wassermenge in l
+Grenzwert Entnahmezeit in min
+/api/rest/5E00
+data=640005000500   100, 5, 5
+Leckageeinstellungen schreiben 50 7 Byte 1: Urlaubsmodus, 0 = aus, 1 = U1, 2 = U2, 3 = U3
+Byte 2+3: Max. Volumenstrom, Einheit Liter/ Stunde
+Byte 4+5, Max. Entnahmemenge; ganzzahlig, Einheit: Liter
+Byte 6+7, Max. Entnahmedauer, ganzzahlig, Einheit: Minute
+/api/rest/500002D007FA000A00   U2, 2000ltr/h, 250ltr, 10min
+Sleepmodusdauer schreiben 53 1 1, 2, 3 … 10 (ganzzahlig), Einheit Stunde /api/rest/530008    8h Sleepmodus, Achtung: Starten des Sleepmodus mit 54
+Sleepmodusdauer lesen 66 1 1, 2, 3 … 10 (ganzzahlig), Einheit Stunde /api/rest/6600   data = &#34;06&#34;
+Urlaubsmodus typ schreiben 56 1 Url Modus byte   0-Aus, 1-U1, 2-U2, 3-U3
+Lernmodus status lesen 64 1 byte Lernmodus aktiv: 0-deaktiviert 1-aktiviert
+2 byte Rest-Lernwassermenge in l
+/api/rest/6400       data=011027   Lernmodus aktiv, Restwasser 10m³
+Mikroleckageprüfung lesen 65 0 - keine Aut. Prüfung, 1 - mit Meldung, 2 - mit Meldung und Schliessen /api/rest/6500      data=00      keine auto. Prüfung
+Datum und Uhrzeit lesen 59 6 Je ein Byte:   Tag, Monat, Jahr, Stunde, Minute, Sekunde data=1c04170e041e    28.4.23, 14:04:30
+Datum und Uhrzeit schreiben 5A 6 Je ein Byte:   Tag, Monat, Jahr, Stunde, Minute, Sekunde
+Mikroleckage Einstellen 5B 1 0 - keine Aut. Prüfung, 1 - mit Meldung, 2 - mit Meldung und Schliessen /api/rest/5B0001    Prüfung nur mit Meldung
+Abwesenheitslimits schreiben 5F 6 je 2 byte: Grenzwert Durchfluss in l/h
+Grenzwert Wassermenge in l
+Grenzwert Entnahmezeit in min
+/api/rest/5F009C04F4010A00    2500l/h 500ltr 10min
+Abwesenheitszeit lesen 60 1/6 Senden:  1 byte Abwesenheitszeitraum  0..6
+Empfang: 1 byte Starttag (0..6 = So - Sa)
+1 byte Startzeit h 0..23
+1 byte Startzeit min  0..59
+1 byte Stoptag (0..6 = So-Sa)
+1 byte Stopzeit h 0..23
+1 byte Stopzeit min (0..59)
+data=020400030700   Di, 4:00 bis Mi 7:00
+Abwesenheitszeit schreiben 61 7 1 byte Abwesenheitszeitraum  0..6
+1 byte Starttag (0..6 = So - Sa)
+1 byte Startzeit h 0..23
+1 byte Startzeit min  0..59
+1 byte Stoptag (0..6 = So-Sa)
+1 byte Stopzeit h 0..23
+1 byte Stopzeit min (0..59)
+/api/rest/610003040200060800  Zeitraum 3 Do 02:00 bis Sa 08:00
+Abwesenheitszeit löschen 62 1 1 byte Abwesenheitszeitraum 0..6 Rücklesewert mit Kommando 60 ergibt dann data = 000000000000
+Gerätetyp lesen FF 1 1 byte Gerätetyp /api/rest/FF00
+data=&#34;44&#34;
+Gerätenummer lesen 6 4 4 byte Gerätenummer /api/rest/0600
+data=0774ed0b  entspricht  200111111
+SW-Version Gerätesteuerung lesen 1 3 3 byte SW-Version /api/rest/0100
+data=661301 entspricht 1.19f
+Inbetriebnahmedatum lesen E 4 /api/rest/0E00
+data=6414CB7B UNIX Timestamp:
+1679084411dez = 17.3.2023 21:20 GMT+1
+Gesamtwassermenge lesen 28 4 Wassermenge in liter
+Tagesstatistik FB 4 32 byte:Es werden die Gesamttageswerte für den angefragten Tag
+zurückgeliefert:
+1-4 Byte: 0:00
+5-8 Byte: 3:00
+9-12 Byte: 6:00
+13-16 Byte: 9:00
+17-20 Byte: 12:00
+21-24 Byte: 15:00
+25-28 Byte: 18:00
+29-32 Byte: 21:00
+/api/rest/FB000D0807E7
+Tagesdaten vom 13.08.2023
+Wochenstatistik FC 3 28 byte:
+Es werden alle Gesamtwerte der Tage der angefragten Woche zurückgeliefert:
+1-4 Byte: Montag
+5-8 Byte: Dienstag
+9-12 Byte: Mittwoch
+13-16 Byte: Donnerstag
+17-20 Byte: Freitag
+21-24 Byte: Samstag
+25-28 Byte: Sonntag
+/api/rest/FC002007E7
+Wochendaten aus KW32 2023
+Monatsstatistik FD 3 124 byte:
+Es werden alle Tage des angefragten Montats zurück geliefert max 31 Tage
+Byte 1-4: Tag1
+Byte 5-8: Tag2
+…..
+Byte 121-124: Tag 31
+/api/rest/FD000807E7
+Monatsdaten aus August 2023
+Jahresstatistik FE 2 48 byte:
+Es wird die Gesamtsumme des Verbrauchs  jedes Monats des angefragen
+Jahres zurück geliefert
+1-4 Byte: Januar
+5-8 Byte: Februar
+9-12 Byte: März
+13-16 Byte: April
+17-20 Byte: Mai
+21-24 Byte: Juni
+25-28 Byte: Juli
+29-32 Byte: August
+33-36 Byte: September
+37-40 Byte: Oktober
+41-44 Byte: November
+45-48 Byte: Dezember
+/api/rest/FE0007E7
+Jahresdaten aus 2023
+Wasserstatistik
+Betriebsstatus
+Bedienung
+Einstellungen
+Infodaten
+Betriebsdaten
+Leckageschutz + Filter ZEWA i-SAFE FILT Gerätetyp 0x44 PROM-i-SAFE Gerätetyp 0x44
+Parameter Kommando (hex) Länge (byte) Anmerkungen Beispielkommando
+Meldung zurücksetzen 63 0 /api/rest/6300
+Leckageschutz schließen 51 0 /api/rest/5100
+Leckageschutz öffnen 52 0 /api/rest/5200
+Sleepmodus starten 54 0 /api/rest/5400
+Sleepmodus beenden 55 0 /api/rest/5500
+Urlaubsmodus starten 57 0 /api/rest/5700
+Urlaubsmodus beenden 58 0 /api/rest/5800
+Mikroleckageprüfung starten 5C 0 /api/rest/5C00
+Lernmodus starten 5D 0 /api/rest/5D00
+Abwesenheitslimits lesen 5E 6 je 2 byte: Grenzwert Durchfluss in l/h
+Grenzwert Wassermenge in l
+Grenzwert Entnahmezeit in min
+/api/rest/5E00
+data=640005000500   100, 5, 5
+Leckageeinstellungen schreiben 50 7 Byte 1: Urlaubsmodus, 0 = aus, 1 = U1, 2 = U2, 3 = U3
+Byte 2+3: Max. Volumenstrom, Einheit Liter/ Stunde
+Byte 4+5, Max. Entnahmemenge; ganzzahlig, Einheit: Liter
+Byte 6+7, Max. Entnahmedauer, ganzzahlig, Einheit: Minute
+/api/rest/500002D007FA000A00   U2,
+2000ltr/h, 250ltr, 10min
+Sleepmodusdauer schreiben 53 1 1, 2, 3 … 10 (ganzzahlig), Einheit Stunde /api/rest/530008    8h Sleepmodus,
+Achtung: Starten des Sleepmodus mit
+Kommando 54
+Sleepmodusdauer lesen 66 1 1, 2, 3 … 10 (ganzzahlig), Einheit Stunde /api/rest/6600   data=&#34;06&#34;
+6h Sleepmodus ist eingestellt
+Urlaubsmodus typ schreiben 56 1 Url Modus byte   0-Aus, 1-U1, 2-U2, 3-U3
+Lernmodus status lesen 64 1 byte Lernmodus aktiv: 0-deaktiviert 1-aktiviert
+2 byte Rest-Lernwassermenge in l
+/api/rest/6400       data=011027
+Lernmodus aktiv, Restwasser 10m³
+Mikroleckageprüfung lesen 65 0 - keine Aut. Prüfung, 1 - mit Meldung, 2 - mit Meldung und
+Schliessen
+/api/rest/6500      data=00      keine
+auto. Prüfung
+Datum und Uhrzeit lesen 59 6 Je ein Byte:   Tag, Monat, Jahr, Stunde, Minute, Sekunde data=1c04170e041e    28.4.23,
+14:04:30Datum und Uhrzeit schreiben 5A 6 Je ein Byte:   Tag, Monat, Jahr, Stunde, Minute, Sekunde
+Mikroleckage Einstellen 5B 1 0 - keine Aut. Prüfung, 1 - mit Meldung, 2 - mit Meldung und
+Schliessen
+/api/rest/5B0001    Prüfung nur mit
+Meldung
+Abwesenheitslimits schreiben 5F 6 je 2 byte: Grenzwert Durchfluss in l/h
+Grenzwert Wassermenge in l
+Grenzwert Entnahmezeit in min
+/api/rest/5F009C04F4010A00
+2500l/h 500ltr 10min
+Abwesenheitszeit lesen 60 1/6 Senden:  1 byte Abwesenheitszeitraum  0..6
+Empfang: 1 byte Starttag (0..6 = So - Sa)
+1 byte Startzeit h 0..23
+1 byte Startzeit min  0..59
+1 byte Stoptag (0..6 = So-Sa)
+1 byte Stopzeit h 0..23
+1 byte Stopzeit min (0..59)
+data=020400030700   Di, 4:00 bis Mi
+7:00
+Abwesenheitszeit schreiben 61 7 1 byte Abwesenheitszeitraum  0..6
+1 byte Starttag (0..6 = So - Sa)
+1 byte Startzeit h 0..23
+1 byte Startzeit min  0..59
+1 byte Stoptag (0..6 = So-Sa)
+1 byte Stopzeit h 0..23
+1 byte Stopzeit min (0..59)
+/api/rest/610003040200060800
+Zeitraum 3 Do 02:00 bis Sa 08:00
+Abwesenheitszeit löschen 62 1 1 byte Abwesenheitszeitraum 0..6 Rücklesewert mit Kommando 60 ergibt
+dann data = 000000000000
+Gerätetyp lesen FF 1 1 byte Gerätetyp /api/rest/FF00
+data=&#34;44&#34;
+Gerätenummer lesen 6 4 4 byte Gerätenummer /api/rest/0600
+data=0774ed0b  entspricht  200111111
+SW-Version Gerätesteuerung lesen 1 3 3 byte SW-Version /api/rest/0100
+data=661301 entspricht 1.19f
+Inbetriebnahmedatum lesen E 4 /api/rest/0E00
+data=6414CB7B UNIX Timestamp:
+1679084411dez = 17.3.2023 21:20
+GMT+1
+Gesamtwassermenge lesen 28 4 Wassermenge in liter
+Tagesstatistik FB 4 32 byte:Es werden die Gesamttageswerte für den angefragten Tag
+zurückgeliefert:
+1-4 Byte: 0:00
+5-8 Byte: 3:00
+9-12 Byte: 6:00
+13-16 Byte: 9:00
+17-20 Byte: 12:00
+21-24 Byte: 15:00
+25-28 Byte: 18:00
+29-32 Byte: 21:00
+/api/rest/FB000D0807E7
+Tagesdaten vom 13.08.2023
+Wochenstatistik FC 3 28 byte:
+Es werden alle Gesamtwerte der Tage der angefragten Woche
+zurückgeliefert:
+1-4 Byte: Montag
+5-8 Byte: Dienstag
+9-12 Byte: Mittwoch
+13-16 Byte: Donnerstag
+17-20 Byte: Freitag
+21-24 Byte: Samstag
+25-28 Byte: Sonntag
+/api/rest/FC002007E7
+Wochendaten aus KW32 2023
+Monatsstatistik FD 3 124 byte:
+Es werden alle Tage des angefragten Montats zurück geliefert max
+31 Tage
+Byte 1-4: Tag1
+Byte 5-8: Tag2
+…..
+Byte 121-124: Tag 31
+/api/rest/FD000807E7
+Monatsdaten aus August 2023
+Jahresstatistik FE 2 48 byte:
+Es wird die Gesamtsumme des Verbrauchs  jedes Monats des
+angefragen Jahres zurück geliefert
+1-4 Byte: Januar
+5-8 Byte: Februar
+9-12 Byte: März
+13-16 Byte: April
+17-20 Byte: Mai
+21-24 Byte: Juni
+25-28 Byte: Juli
+29-32 Byte: August
+33-36 Byte: September
+37-40 Byte: Oktober
+41-44 Byte: November
+45-48 Byte: Dezember
+/api/rest/FE0007E7
+Jahresdaten aus 2023
+Wasserverbrauch
+Betriebsstatus
+Bedienung
+Einstellungen
+Infodaten
+Betriebsdaten
+Dosierpumpe i-dos eco Gerätetyp 0x41
+Parameter Kommando (hex) Länge (byte) Anmerkungen Beispielkommando
+Datum und Uhrzeit lesen 61 6 Je ein Byte:   Tag, Monat, Jahr, Stunde, Minute, Sekunde    --&gt; Jahr
+00 .. 99
+/api/rest/6100
+data=0507170a1b1b                  05.07.23 10:27:27
+Datum und Uhrzeit schreiben 71 6 Je ein Byte:   Tag, Monat, Jahr, Stunde, Minute, Sekunde    --&gt; Jahr
+00 .. 99
+/api/rest/71000507170B2727 05.07.23 11:27:27
+Statusdaten abfragen 43 29 1 byte Schaltungstyp
+1 byte Betriebsmodus
+1 byte unbenutzt
+1 byte Konzentration (min, Norm, max)
+1 byte unbenutzt
+2 byte Fehlercode
+2 byte Warnmeldungen
+6 byte unbenutzt
+2 byte Dosiermenge
+2 byte akt. Wasserdurchfluss in l/h
+2byte Restmenge im Behälter
+4 byte Wasserverbrauch in L
+4 byte unbenutzt
+/api/rest/4300
+data=020001020000000000000000000000000000
+002f000d0000004dae0200
+Dosierung lesen 63 6 1 byte Typ:   1- JUL-W
+2- JUL-C
+3- JUL-H
+4- JUL-S
+5- JUL-SW
+1 byte Inhalt: 1-3 ltr
+2-6 ltr
+3-25 ltr
+4-60 ltr
+data=0102    JUL-W,  6ltr
+Dosierung schreiben 52 2 1 byte unbenutzt
+1 byte Konzentration: 1-min 2-norm 3-max
+/api/rest/52000002   Konz. norm
+Pumpenbetriebsart einstellen 53 3 1 byte Pumpenmodus:  0-aus 1-automatik 2-manuell 3-&#34;ein&#34; bis 5ml dosiert. 2 byte Pumpendrehzahl bei man. Betrieb in U/min.
+/api/rest/5300010000  auto, 0U/min manuell
+Gerätetyp lesen FF 1 1 byte Gerätetyp /api/rest/FF00
+data=&#34;44&#34;
+Gerätenummer lesen 6 4 4 byte Gerätenummer /api/rest/0600
+data=0774ed0b  entspricht  200111111
+SW-Version Gerätesteuerung lesen 1 3 3 byte SW-Version /api/rest/0100
+data=661301 entspricht 1.19f
+Inbetriebnahmedatum lesen E 4 /api/rest/0E00
+data=6414CB7B UNIX Timestamp:
+1679084411dez = 17.3.2023 21:20 GMT+1
+Gesamtwassermenge lesen 28 4 4 byte Wasserverbrauch in L
+4 byte unbenutzt
+Tagesstatistik FB 4 32 byte:Es werden die Gesamttageswerte für den angefragten
+Tag zurückgeliefert:
+1-4 Byte: 0:00
+5-8 Byte: 3:00
+9-12 Byte: 6:00
+13-16 Byte: 9:00
+17-20 Byte: 12:00
+21-24 Byte: 15:00
+25-28 Byte: 18:00
+29-32 Byte: 21:00
+/api/rest/FB000D0807E7
+Tagesdaten vom 13.08.2023
+Wochenstatistik FC 3 28 byte:
+Es werden alle Gesamtwerte der Tage der angefragten Woche
+zurückgeliefert:
+1-4 Byte: Montag
+5-8 Byte: Dienstag
+9-12 Byte: Mittwoch
+13-16 Byte: Donnerstag
+17-20 Byte: Freitag
+21-24 Byte: Samstag
+25-28 Byte: Sonntag
+/api/rest/FC002007E7
+Wochendaten aus KW32 2023
+Monatsstatistik FD 3 124 byte:
+Es werden alle Tage des angefragten Montats zurück geliefert
+max 31 Tage
+Byte 1-4: Tag1
+Byte 5-8: Tag2
+…..
+Byte 121-124: Tag 31
+/api/rest/FD000807E7
+Monatsdaten aus August 2023
+Wasserverbrauch
+Betriebsstatus
+Einstellungen
+Infodaten
+Betriebsdaten
+Jahresstatistik FE 2 48 byte:
+Es wird die Gesamtsumme des Verbrauchs  jedes Monats des
+angefragen Jahres zurück geliefert
+1-4 Byte: Januar
+5-8 Byte: Februar
+9-12 Byte: März
+13-16 Byte: April
+17-20 Byte: Mai
+21-24 Byte: Juni
+25-28 Byte: Juli
+29-32 Byte: August
+33-36 Byte: September
+37-40 Byte: Oktober
+41-44 Byte: November
+45-48 Byte: Dezember
+/api/rest/FE0007E7
+Jahresdaten aus 2023
+Heizungsbefüllung i-fill 60 Gerätetyp 0x3C
+Parameter Kommando
+(hex)
+Länge (byte) Anmerkungen Beispielkommando
+Grenzwertdaten abfragen 42 (22 bytes
+response)
+22 byte antwort:
+1 byte Sprache:  0-DE, 1-EN, 2-FR, 3-NL, 4-IT
+1 byte Einheit: 0-°dH, 1-°e, 2-°fH, 3-gpg, 4-ppm, 5-mmol, 6-mval/l
+1 byte Korrektur Rohwasserhärte
+1 byte Patronentyp siehe rechts
+1 byte unused
+1 byte Max. Anzahl Füllzyklen
+1 byte Max. Fülldruck *10
+1 byte Hysteres Fülldruck *10
+2 byte Rohwasserhärte
+2 byte Max Füllzeit in minuten
+2 byte Max Füllmenge in Liter
+2 byte Heizungsinhalt
+2 byte max. Leitwert
+4 byte Patronenkapazität
+data=00000000000514011400050014000500c80064004c1d0000
+00 - DE
+00 - °dH
+00
+00 - PURE7500
+00
+51
+40
+11
+0040
+0105
+0040
+0C50
+0680
+00001D4C Modus Füllventil einstellen 53 1 byte 1 byte Modus Füllventil:
+0-automatik
+1-manuell öffnen
+2-manuell schliessen
+/api/rest/530001    Füllventil manuell öffnen
+Leckageschutz schliessen 51 /api/rest/5100
+Leckageschutz öffnen 52 /api/rest/5200
+Störmelderelais EIN/AUS 54 1 byte 1 byte Störmelderelais ein/aus
+0-automatikbetrieb
+128-manuell aus
+129-manuell ein
+/api/rest/5400F0    Störmelderelais manuell einschalten
+Grenzwerte einstellen 50 22 byte 22 byte:
+1 byte Sprache:  0-DE, 1-EN, 2-FR, 3-NL, 4-IT
+1 byte Einheit: 0-°dH, 1-°e, 2-°fH, 3-gpg, 4-ppm, 5-mmol, 6-mval/l
+1 byte Korrektur Rohwasserhärte
+1 byte Patronentyp siehe rechts
+1 byte unused
+1 byte Max. Anzahl Füllzyklen
+1 byte Max. Fülldruck *10
+1 byte Hysteres Fülldruck *10
+2 byte Rohwasserhärte
+2 byte Max Füllzeit in minuten
+2 byte Max Füllmenge in Liter
+2 byte Heizungsinhalt
+2 byte max. Leitwert
+4 byte Patronenkapazität
+/api/rest/500000000000000514011400050014000500c80064004
+c1d0000
+Patronentypen:
+0 - PURE 7500
+1 - PURE 25000
+2- SOFT 12000
+3 - SOFT 60000
+4 - PURE frei
+5 - SOFT frei
+10 - JP17
+11 - JP26
+12 - JP46
+13 - JP100
+Gerätetyp lesen FF 1 1 byte Gerätetyp /api/rest/FF00
+data=&#34;3C&#34;
+Gerätenummer lesen 6 4 4 byte Gerätenummer /api/rest/0600
+data=0774ed0b  entspricht  200111111
+SW-Version Gerätesteuerung lesen 1 3 3 byte SW-Version /api/rest/0100
+data=661301 entspricht 1.19f
+Inbetriebnahmedatum lesen E 4
+Gesamtwassermenge lesen 28 4 Wassermenge in liter
+Tagesstatistik FB 4 32 byte:Es werden die Gesamttageswerte für den angefragten Tag
+zurückgeliefert:
+1-4 Byte: 0:00
+5-8 Byte: 3:00
+9-12 Byte: 6:00
+13-16 Byte: 9:00
+17-20 Byte: 12:00
+21-24 Byte: 15:00
+25-28 Byte: 18:00
+29-32 Byte: 21:00
+/api/rest/FB000D0807E7
+Tagesdaten vom 13.08.2023
+Wochenstatistik FC 3 28 byte:
+Es werden alle Gesamtwerte der Tage der angefragten Woche
+zurückgeliefert:
+1-4 Byte: Montag
+5-8 Byte: Dienstag
+9-12 Byte: Mittwoch
+13-16 Byte: Donnerstag
+17-20 Byte: Freitag
+21-24 Byte: Samstag
+25-28 Byte: Sonntag
+/api/rest/FC002007E7
+Wochendaten aus KW32 2023
+Monatsstatistik FD 3 124 byte:
+Es werden alle Tage des angefragten Montats zurück geliefert max 31
+Tage
+Byte 1-4: Tag1
+Byte 5-8: Tag2
+…..
+Byte 121-124: Tag 31
+/api/rest/FD000807E7
+Monatsdaten aus August 2023
+Jahresstatistik FE 2 48 byte:
+Es wird die Gesamtsumme des Verbrauchs  jedes Monats des
+angefragen Jahres zurück geliefert
+1-4 Byte: Januar
+5-8 Byte: Februar
+9-12 Byte: März
+13-16 Byte: April
+17-20 Byte: Mai
+21-24 Byte: Juni
+25-28 Byte: Juli
+29-32 Byte: August
+33-36 Byte: September
+37-40 Byte: Oktober
+41-44 Byte: November
+45-48 Byte: Dezember
+/api/rest/FE0007E7
+Jahresdaten aus 2023
+Wasserverbrauch
+Betriebsstatus
+Bedienung
+Einstellungen
+Infodaten
+Betriebsdaten</p>

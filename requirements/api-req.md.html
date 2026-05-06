@@ -1,0 +1,50 @@
+<p>GENERAL:</p>
+<ul>
+<li>One request at a time. If 429 Too Many Requests occurs, wait ≥ 2s and retry (exponential backoff).</li>
+<li>If 400/500: check hex length/max ~80 bytes and command format.</li>
+<li>Parse and produce hex strictly; helper toU16BE/fromU16BE.
+CORE COMMANDS (read/write):</li>
+<li>Device type: GET /api/rest/FF00 → &#34;44&#34; means ZEWA i-SAFE</li>
+<li>Serial number: GET /api/rest/0600 → 4B serial (hex)</li>
+<li>FW version: GET /api/rest/0100 → 3B version</li>
+<li>Commission date: GET /api/rest/0E00 → 4B Unix timestamp (BE)</li>
+<li>Total water (L): GET /api/rest/2800 → 4B total liters
+Valve/modes:</li>
+<li>Ack alarm: /api/rest/6300</li>
+<li>Close valve: /api/rest/5100</li>
+<li>Open valve: /api/rest/5200</li>
+<li>Sleep start/end: /api/rest/5400 /api/rest/5500</li>
+<li>Vacation start/end: /api/rest/5700 /api/rest/5800</li>
+<li>Micro-leak test: /api/rest/5C00</li>
+<li>Learn mode start: /api/rest/5D00
+Limits &amp; settings:</li>
+<li>Read absence limits: /api/rest/5E00 → 6B: [flow l/h (U16), volume l (U16), time min (U16)]</li>
+<li>Write absence limits: /api/rest/5F00</li>
+<li>Write leak preset (incl. vacation type &amp; maxima): /api/rest/50&lt;7B&gt;
+<ul>
+<li>B1=vacation type (0=off,1=U1,2=U2,3=U3)</li>
+<li>B2-3=max flow l/h (U16), B4-5=max volume l (U16), B6-7=max duration min (U16)</li>
+</ul>
+</li>
+<li>Set sleep hours: /api/rest/53&lt;1B hours 1..10&gt; (then /5400 to start)</li>
+<li>Read sleep hours: /api/rest/6600 → 1B hours</li>
+<li>Set vacation type: /api/rest/56&lt;1B 0..3&gt;</li>
+<li>Read micro-leak mode: /api/rest/6500 → 0=off,1=notify,2=notify+close</li>
+<li>Set micro-leak mode: /api/rest/5B&lt;1B 0|1|2&gt;
+Absence windows (index 0..6):</li>
+<li>Read window i: /api/rest/60&lt;1B index&gt; → 6B: startDay(0=Sun..6=Sat), startH, startM, stopDay, stopH, stopM</li>
+<li>Write window i: /api/rest/61</li>
+<li>Delete window i: /api/rest/6200</li>
+<li>Read datetime: /api/rest/5900 → 6B: day,month,year, hour,min,sec</li>
+<li>Set datetime: /api/rest/5A&lt;6B&gt;
+Statistics (liters):</li>
+<li>Day: /api/rest/FB&lt;4B day&gt; → 8×4B (0:00,3:00,…,21:00)</li>
+<li>Week: /api/rest/FC&lt;3B week/yr&gt; → 7×4B (Mon..Sun)</li>
+<li>Month: /api/rest/FD&lt;3B m/yr&gt; → up to 31×4B</li>
+<li>Year: /api/rest/FE&lt;2B yr&gt; → 12×4B
+CONSTRAINTS:</li>
+<li>Implement safe fetch with Basic Auth and backoff (≥2s on 429).</li>
+<li>Provide hex helpers (U8/U16/U32 BE).</li>
+<li>Export a clean API with typed models for parsed responses.</li>
+<li>Include examples for closing/opening valve, configuring sleep, writing limits.</li>
+</ul>

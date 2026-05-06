@@ -1,0 +1,316 @@
+<h3 id="zewa-i-safe-api-home-assistant-platform-mapping">ZEWA i-SAFE API → Home Assistant Platform Mapping</h3>
+<p>Dieses Dokument beschreibt die exakte Zuordnung der ZEWA i-SAFE API-Kommandos zu den Home Assistant Plattformen und Entitäten.
+Es basiert auf der offiziellen API-Spezifikation (PDF) und ist so formuliert, dass keine Mehrdeutigkeit bleibt.</p>
+<hr>
+<h4 id="1-aktoren-switch-button">1. Aktoren (Switch / Button)</h4>
+<table>
+<thead>
+<tr>
+<th>API Command</th>
+<th>Hex</th>
+<th>Beschreibung</th>
+<th>Daten (Request)</th>
+<th>Rückgabe</th>
+<th>HA Plattform → Entity</th>
+<th>Bemerkungen</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/rest/5100</td>
+<td>0x51</td>
+<td>Ventil schließen</td>
+<td>–</td>
+<td>–</td>
+<td>switch.valve_open (OFF)</td>
+<td>OFF = geschlossen</td>
+</tr>
+<tr>
+<td>/api/rest/5200</td>
+<td>0x52</td>
+<td>Ventil öffnen</td>
+<td>–</td>
+<td>–</td>
+<td>switch.valve_open (ON)</td>
+<td>ON = geöffnet</td>
+</tr>
+<tr>
+<td>/api/rest/5400</td>
+<td>0x54</td>
+<td>Sleepmodus starten</td>
+<td>–</td>
+<td>–</td>
+<td>switch.sleep_mode (ON)</td>
+<td>Start</td>
+</tr>
+<tr>
+<td>/api/rest/5500</td>
+<td>0x55</td>
+<td>Sleepmodus beenden</td>
+<td>–</td>
+<td>–</td>
+<td>switch.sleep_mode (OFF)</td>
+<td>Stop</td>
+</tr>
+<tr>
+<td>/api/rest/5700</td>
+<td>0x57</td>
+<td>Urlaubsmodus starten</td>
+<td>–</td>
+<td>–</td>
+<td>switch.vacation_mode (ON)</td>
+<td>Start</td>
+</tr>
+<tr>
+<td>/api/rest/5800</td>
+<td>0x58</td>
+<td>Urlaubsmodus beenden</td>
+<td>–</td>
+<td>–</td>
+<td>switch.vacation_mode (OFF)</td>
+<td>Stop</td>
+</tr>
+<tr>
+<td>/api/rest/5C00</td>
+<td>0x5C</td>
+<td>Mikrolecktest starten</td>
+<td>–</td>
+<td>–</td>
+<td>button.start_microleak_test</td>
+<td>Einmalige Aktion</td>
+</tr>
+<tr>
+<td>/api/rest/5D00</td>
+<td>0x5D</td>
+<td>Lernmodus starten</td>
+<td>–</td>
+<td>–</td>
+<td>button.start_learning</td>
+<td>Einmalige Aktion</td>
+</tr>
+<tr>
+<td>/api/rest/6300</td>
+<td>0x63</td>
+<td>Meldungen zurücksetzen</td>
+<td>–</td>
+<td>–</td>
+<td>button.reset_alarms</td>
+<td>Einmalige Aktion</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="2-konfiguration-number-select">2. Konfiguration (Number / Select)</h4>
+<table>
+<thead>
+<tr>
+<th>API Command</th>
+<th>Hex</th>
+<th>Beschreibung</th>
+<th>Datenlayout</th>
+<th>Rückgabe</th>
+<th>HA Plattform → Entity</th>
+<th>Details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/rest/5300</td>
+<td>0x53</td>
+<td>Sleepdauer setzen</td>
+<td>1 B (1–10 h)</td>
+<td>–</td>
+<td>number.sleep_hours</td>
+<td>Bsp.: 5300 08 → 8 h</td>
+</tr>
+<tr>
+<td>/api/rest/6600</td>
+<td>0x66</td>
+<td>Sleepdauer lesen</td>
+<td>–</td>
+<td>1 B (1–10 h)</td>
+<td>sensor.sleep_duration</td>
+<td>Bsp.: &#34;06&#34; → 6 h</td>
+</tr>
+<tr>
+<td>/api/rest/5E00</td>
+<td>0x5E</td>
+<td>Abwesenheitslimits lesen</td>
+<td>–</td>
+<td>6 B (3×2B LSB-first): Flow (l/h), Volumen (L), Dauer (min)</td>
+<td>sensor.absence_flow_limit<br>sensor.absence_volume_limit<br>sensor.absence_duration_limit</td>
+<td>Reihenfolge: Flow, Volume, Time</td>
+</tr>
+<tr>
+<td>/api/rest/5F00</td>
+<td>0x5F</td>
+<td>Abwesenheitslimits setzen</td>
+<td>6 B (3×2B LSB-first)</td>
+<td>–</td>
+<td>number.absence_flow_limit<br>number.absence_volume_limit<br>number.absence_duration_limit</td>
+<td>Bsp.: C4 09 → 2500 l/h</td>
+</tr>
+<tr>
+<td>/api/rest/5600</td>
+<td>0x56</td>
+<td>Urlaubstyp setzen</td>
+<td>1 B: 00=off, 01=U1, 02=U2, 03=U3</td>
+<td>–</td>
+<td>select.vacation_type</td>
+<td>States: off/u1/u2/u3</td>
+</tr>
+<tr>
+<td>/api/rest/6500</td>
+<td>0x65</td>
+<td>Mikroleckmodus lesen</td>
+<td>–</td>
+<td>1 B: 00=off, 01=notify, 02=notify+close</td>
+<td>select.microleak_mode_set</td>
+<td>–</td>
+</tr>
+<tr>
+<td>/api/rest/5B00</td>
+<td>0x5B</td>
+<td>Mikroleckmodus setzen</td>
+<td>1 B: 00/01/02</td>
+<td>–</td>
+<td>select.microleak_mode_set</td>
+<td>–</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="3-zeitplan-abwesenheit-services">3. Zeitplan Abwesenheit (Services)</h4>
+<table>
+<thead>
+<tr>
+<th>API Command</th>
+<th>Hex</th>
+<th>Beschreibung</th>
+<th>Datenlayout</th>
+<th>Rückgabe</th>
+<th>HA Service / Entity</th>
+<th>Beispiel</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/rest/6000</td>
+<td>0x60</td>
+<td>Zeitplan lesen</td>
+<td>Index 0–6</td>
+<td>6 B: Start-Tag, Start-h, Start-min, Stop-Tag, Stop-h, Stop-min</td>
+<td>sensor.absence_schedule (optional)</td>
+<td>02 04 00 03 07 00 → Di 04:00–Mi 07:00</td>
+</tr>
+<tr>
+<td>/api/rest/6100</td>
+<td>0x61</td>
+<td>Zeitplan schreiben</td>
+<td>Index + 6 B wie oben</td>
+<td>–</td>
+<td>judo_leakguard.set_absence_schedule</td>
+<td>61 00 03 04 02 00 06 08 00</td>
+</tr>
+<tr>
+<td>/api/rest/6200</td>
+<td>0x62</td>
+<td>Zeitplan löschen</td>
+<td>Index 0–6</td>
+<td>–</td>
+<td>judo_leakguard.clear_absence_schedule</td>
+<td>–</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="4-ger-te-infos-sensor-service">4. Geräte-Infos (Sensor / Service)</h4>
+<p>| API Command      | Hex  | Beschreibung        | Rückgabe               | HA Entity / Service        | Details                       | | ---------------- | ---- | ------------------- | ---------------------- | -------------------------- | ----------------------------- | --- | | /api/rest/5900 | 0x59 | Datum/Zeit lesen    | 6 B: DD MM YY HH mm ss | sensor.device_datetime   | –                             | | /api/rest/5A00 | 0x5A | Datum/Zeit setzen   | 6 B wie oben           | –                          | judo_leakguard.set_datetime | –   | | /api/rest/FF00 | 0xFF | Gerätetyp           | 1 B Typ-ID             | sensor.device_type       | z. B. 0x44                  | | /api/rest/0600 | 0x06 | Seriennummer        | 4 B                    | sensor.device_serial     | LSB-first                     | | /api/rest/0100 | 0x01 | Firmware-Version    | 3 B                    | sensor.device_firmware   | –                             | | /api/rest/0E00 | 0x0E | Inbetriebnahmedatum | 4 B Unix-Timestamp     | sensor.installation_date | –                             |</p>
+<hr>
+<h4 id="5-verbrauch-statistiken-sensoren">5. Verbrauch &amp; Statistiken (Sensoren)</h4>
+<table>
+<thead>
+<tr>
+<th>API Command</th>
+<th>Hex</th>
+<th>Beschreibung</th>
+<th>Rückgabe</th>
+<th>HA Entity</th>
+<th>Details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/rest/2800</td>
+<td>0x28</td>
+<td>Gesamtwasser</td>
+<td>4 B Liter (LSB-first)</td>
+<td>sensor.total_water_liters</td>
+<td>m³ = Liter/1000</td>
+</tr>
+<tr>
+<td>/api/rest/FB00</td>
+<td>0xFB</td>
+<td>Tagesstatistik</td>
+<td>32 B (8×3h-Blöcke)</td>
+<td>sensor.daily_usage</td>
+<td>Parameter: DD MM YYYY</td>
+</tr>
+<tr>
+<td>/api/rest/FC00</td>
+<td>0xFC</td>
+<td>Wochenstatistik</td>
+<td>28 B (7 Tage)</td>
+<td>sensor.weekly_usage</td>
+<td>Parameter: KW YYYY</td>
+</tr>
+<tr>
+<td>/api/rest/FD00</td>
+<td>0xFD</td>
+<td>Monatsstatistik</td>
+<td>124 B (31 Tage)</td>
+<td>sensor.monthly_usage</td>
+<td>Parameter: MM YYYY</td>
+</tr>
+<tr>
+<td>/api/rest/FE00</td>
+<td>0xFE</td>
+<td>Jahresstatistik</td>
+<td>48 B (12 Monate)</td>
+<td>sensor.yearly_usage</td>
+<td>Parameter: YYYY</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="6-lernmodus-binary-sensor-sensor">6. Lernmodus (Binary Sensor + Sensor)</h4>
+<table>
+<thead>
+<tr>
+<th>API Command</th>
+<th>Hex</th>
+<th>Beschreibung</th>
+<th>Rückgabe</th>
+<th>HA Entity</th>
+<th>Details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/rest/6400</td>
+<td>0x64</td>
+<td>Lernstatus &amp; Restwasser</td>
+<td>1 B aktiv (0/1) + 2 B Rest-Liter (LSB-first)</td>
+<td>binary_sensor.learn_active<br>sensor.learning_remaining_water</td>
+<td>–</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="hinweise">Hinweise</h4>
+<ul>
+<li>Alle  <strong>2-Byte-Werte</strong>  sind LSB-first kodiert (z. B. C4 09 → 0x09C4 = 2500).</li>
+<li><strong>Statistik-Parameter</strong> : Jahr = 2 B Big-Endian (z. B. 07 E7 = 2023).</li>
+<li><strong>Switches</strong>  sind „optimistic“, da nur Start/Stop-Befehle existieren, kein Status-Read.</li>
+<li><strong>Abwesenheitszeitpläne</strong>  können bis zu 7 Einträge haben (Index 0–6).</li>
+</ul>
