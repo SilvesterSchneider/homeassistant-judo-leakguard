@@ -1,0 +1,87 @@
+set_absence_schedule:
+  name: Abwesenheitszeitraum setzen
+  description: Schreibt einen Abwesenheitszeitraum (Index 0–6) auf das Gerät.
+  fields:
+    index:
+      name: Index
+      description: Slot-Nummer 0–6
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 6
+          mode: box
+    start_day:
+      name: Starttag
+      description: "Wochentag (0=So, 1=Mo, …, 6=Sa)"
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 6
+          mode: box
+    start_hour:
+      name: Startzeit (Stunde)
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 23
+          mode: box
+    start_minute:
+      name: Startzeit (Minute)
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 59
+          mode: box
+    stop_day:
+      name: Stoptag
+      description: "Wochentag (0=So, 1=Mo, …, 6=Sa)"
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 6
+          mode: box
+    stop_hour:
+      name: Stopzeit (Stunde)
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 23
+          mode: box
+    stop_minute:
+      name: Stopzeit (Minute)
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 59
+          mode: box
+
+clear_absence_schedule:
+  name: Abwesenheitszeitraum löschen
+  description: Löscht einen Abwesenheitszeitraum (Index 0–6).
+  fields:
+    index:
+      name: Index
+      description: Slot-Nummer 0–6
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 6
+          mode: box
+
+set_datetime:
+  name: Datum und Uhrzeit setzen
+  description: Schreibt Datum und Uhrzeit auf das Gerät.
+  fields:
+    datetime:
+      name: Datum/Uhrzeit
+      required: true
+      selector:
+        datetime:

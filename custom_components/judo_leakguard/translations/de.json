@@ -1,0 +1,24 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "JUDO ZEWA i-SAFE einrichten",
+        "description": "Verbindungsdaten des Connectivity-Moduls eingeben.",
+        "data": {
+          "host": "IP-Adresse / Hostname",
+          "username": "Benutzername",
+          "password": "Passwort"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Verbindung fehlgeschlagen. Bitte IP-Adresse prüfen.",
+      "invalid_auth": "Ungültige Zugangsdaten.",
+      "wrong_device_type": "Das Gerät ist kein ZEWA i-SAFE (Typ 0x44).",
+      "unknown": "Unbekannter Fehler."
+    },
+    "abort": {
+      "already_configured": "Gerät ist bereits konfiguriert."
+    }
+  }
+}
