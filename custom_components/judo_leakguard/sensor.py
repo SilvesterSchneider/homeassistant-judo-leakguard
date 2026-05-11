@@ -65,6 +65,16 @@ SENSOR_DESCRIPTIONS: tuple[JudoSensorEntityDescription, ...] = (
         value_fn=lambda d: d.status.total_water_liters,
     ),
     JudoSensorEntityDescription(
+        key="total_water_m3",
+        name="Gesamtwasser (m³)",
+        icon="mdi:water",
+        native_unit_of_measurement=UnitOfVolume.CUBIC_METERS,
+        device_class=SensorDeviceClass.WATER,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        suggested_display_precision=3,
+        value_fn=lambda d: round(d.status.total_water_liters / 1000, 3),
+    ),
+    JudoSensorEntityDescription(
         key="sleep_duration",
         name="Schlafdauer",
         icon="mdi:sleep",
