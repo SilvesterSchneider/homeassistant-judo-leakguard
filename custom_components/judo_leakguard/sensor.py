@@ -18,7 +18,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, MICROLEAK_MODES
+from .const import DEVICE_TYPE_NAMES, DOMAIN, MICROLEAK_MODES
 from .coordinator import JudoData, JudoDataUpdateCoordinator
 
 
@@ -33,7 +33,7 @@ SENSOR_DESCRIPTIONS: tuple[JudoSensorEntityDescription, ...] = (
         key="device_type",
         name="Gerätetyp",
         icon="mdi:chip",
-        value_fn=lambda d: f"0x{d.info.device_type:02X}",
+        value_fn=lambda d: DEVICE_TYPE_NAMES.get(d.info.device_type, f"Unbekannt (0x{d.info.device_type:02X})"),
     ),
     JudoSensorEntityDescription(
         key="device_serial",
