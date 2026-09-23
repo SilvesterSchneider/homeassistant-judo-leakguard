@@ -20,5 +20,45 @@
     "abort": {
       "already_configured": "Gerät ist bereits konfiguriert."
     }
+  },
+  "entity": {
+    "sensor": {
+      "device_type": { "name": "Device type" },
+      "device_serial": { "name": "Serial number" },
+      "device_firmware": { "name": "Firmware version" },
+      "installation_date": { "name": "Installation date" },
+      "total_water_liters": { "name": "Total water (liters)" },
+      "total_water_m3": { "name": "Total water (m³)" },
+      "sleep_duration": { "name": "Sleep duration" },
+      "learning_remaining_water": { "name": "Learning mode remaining water" },
+      "absence_flow_limit": { "name": "Absence flow limit" },
+      "absence_volume_limit": { "name": "Absence volume limit" },
+      "absence_duration_limit": { "name": "Absence duration limit" },
+      "device_datetime": { "name": "Device date/time" },
+      "daily_usage": { "name": "Usage today" },
+      "weekly_usage": { "name": "Usage this week" },
+      "monthly_usage": { "name": "Usage this month" },
+      "yearly_usage": { "name": "Usage this year" }
+    },
+    "switch": {
+      "valve_open": { "name": "Valve" },
+      "sleep_mode": { "name": "Sleep mode" },
+      "vacation_mode": { "name": "Vacation mode" }
+    },
+    "button": {
+      "reset_alarms": { "name": "Reset alarms" },
+      "start_microleak_test": { "name": "Start micro-leak test" },
+      "start_learning": { "name": "Start learning mode" }
+    },
+    "number": {
+      "sleep_hours": { "name": "Sleep duration" },
+      "absence_flow_limit": { "name": "Absence flow limit" },
+      "absence_volume_limit": { "name": "Absence volume limit" },
+      "absence_duration_limit": { "name": "Absence duration limit" }
+    },
+    "select": {
+      "vacation_type": { "name": "Vacation type" },
+      "microleak_mode": { "name": "Micro-leak mode" }
+    }
   }
 }

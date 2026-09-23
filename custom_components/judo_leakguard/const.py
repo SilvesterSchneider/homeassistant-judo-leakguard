@@ -7,7 +7,6 @@ CONF_USERNAME = "username"
 CONF_PASSWORD = "password"
 
 DEFAULT_USERNAME = "admin"
-DEFAULT_PASSWORD = "Connectivity"
 DEFAULT_SCAN_INTERVAL = 30  # Sekunden
 
 # Gerätetyp-ID für ZEWA i-SAFE

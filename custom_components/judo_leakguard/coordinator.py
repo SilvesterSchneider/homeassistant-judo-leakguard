@@ -7,8 +7,15 @@ from datetime import timedelta
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.util import dt as dt_util
 
-from .api import DeviceInfo, DeviceStatus, JudoApiClient, JudoApiError
+from .api import (
+    JudoApiClient,
+    JudoApiError,
+    JudoConsumptionStats,
+    JudoDeviceInfo,
+    JudoDeviceStatus,
+)
 from .const import DEFAULT_SCAN_INTERVAL, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
@@ -16,8 +23,9 @@ _LOGGER = logging.getLogger(__name__)
 
 @dataclass
 class JudoData:
-    info: DeviceInfo
-    status: DeviceStatus
+    info: JudoDeviceInfo
+    status: JudoDeviceStatus
+    stats: JudoConsumptionStats | None  # None, wenn das Gerät keine Statistik liefert
 
 
 class JudoDataUpdateCoordinator(DataUpdateCoordinator[JudoData]):
@@ -34,17 +42,43 @@ class JudoDataUpdateCoordinator(DataUpdateCoordinator[JudoData]):
 
     async def _async_update_data(self) -> JudoData:
         try:
-            info, status = await _gather_data(self.client)
+            info, status, stats = await _gather_data(self.client)
         except JudoApiError as exc:
             raise UpdateFailed(f"Fehler beim Datenabruf: {exc}") from exc
-        return JudoData(info=info, status=status)
+        return JudoData(info=info, status=status, stats=stats)
 
 
-async def _gather_data(client: JudoApiClient) -> tuple[DeviceInfo, DeviceStatus]:
-    """Holt Geräteinfos und Betriebsstatus parallel."""
+async def _gather_data(
+    client: JudoApiClient,
+) -> tuple[JudoDeviceInfo, JudoDeviceStatus, JudoConsumptionStats | None]:
+    """Holt Geräteinfos, Betriebsstatus und Statistiken parallel."""
     import asyncio
 
-    return await asyncio.gather(
+    info, status = await asyncio.gather(
         client.get_device_info(),
         client.get_status(),
+    )
+    return info, status, await _gather_stats(client)
+
+
+async def _gather_stats(client: JudoApiClient) -> JudoConsumptionStats | None:
+    """Liest die Verbrauchsstatistik. Ein Fehler hier legt nicht alles lahm."""
+    import asyncio
+
+    # Lokales Datum von HA, nicht die Systemzeit des Containers
+    now = dt_util.now()
+    week_year, week, _ = now.isocalendar()
+
+    try:
+        daily, weekly, monthly, yearly = await asyncio.gather(
+            client.get_daily_usage(now.day, now.month, now.year),
+            client.get_weekly_usage(week, week_year),
+            client.get_monthly_usage(now.month, now.year),
+            client.get_yearly_usage(now.year),
+        )
+    except (JudoApiError, ValueError, IndexError) as exc:
+        _LOGGER.debug("Statistik nicht verfügbar: %s", exc)
+        return None
+    return JudoConsumptionStats(
+        daily=daily, weekly=weekly, monthly=monthly, yearly=yearly
     )

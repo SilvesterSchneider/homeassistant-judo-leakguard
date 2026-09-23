@@ -16,7 +16,6 @@ from .const import (
     CONF_HOST,
     CONF_PASSWORD,
     CONF_USERNAME,
-    DEFAULT_PASSWORD,
     DEFAULT_USERNAME,
     DEVICE_TYPE_ZEWA_ISAFE,
     DOMAIN,
@@ -28,7 +27,7 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_HOST): str,
         vol.Optional(CONF_USERNAME, default=DEFAULT_USERNAME): str,
-        vol.Optional(CONF_PASSWORD, default=DEFAULT_PASSWORD): str,
+        vol.Required(CONF_PASSWORD): str,
     }
 )
 

@@ -20,5 +20,45 @@
     "abort": {
       "already_configured": "Gerät ist bereits konfiguriert."
     }
+  },
+  "entity": {
+    "sensor": {
+      "device_type": { "name": "Gerätetyp" },
+      "device_serial": { "name": "Seriennummer" },
+      "device_firmware": { "name": "Firmware-Version" },
+      "installation_date": { "name": "Inbetriebnahmedatum" },
+      "total_water_liters": { "name": "Gesamtwasser (Liter)" },
+      "total_water_m3": { "name": "Gesamtwasser (m³)" },
+      "sleep_duration": { "name": "Schlafdauer" },
+      "learning_remaining_water": { "name": "Lernmodus Restwasser" },
+      "absence_flow_limit": { "name": "Abwesenheit – Durchfluss-Limit" },
+      "absence_volume_limit": { "name": "Abwesenheit – Volumen-Limit" },
+      "absence_duration_limit": { "name": "Abwesenheit – Dauer-Limit" },
+      "device_datetime": { "name": "Gerätedatum/-zeit" },
+      "daily_usage": { "name": "Verbrauch heute" },
+      "weekly_usage": { "name": "Verbrauch diese Woche" },
+      "monthly_usage": { "name": "Verbrauch dieser Monat" },
+      "yearly_usage": { "name": "Verbrauch dieses Jahr" }
+    },
+    "switch": {
+      "valve_open": { "name": "Ventil" },
+      "sleep_mode": { "name": "Sleep-Modus" },
+      "vacation_mode": { "name": "Urlaubsmodus" }
+    },
+    "button": {
+      "reset_alarms": { "name": "Meldungen zurücksetzen" },
+      "start_microleak_test": { "name": "Mikroleck-Test starten" },
+      "start_learning": { "name": "Lernmodus starten" }
+    },
+    "number": {
+      "sleep_hours": { "name": "Schlafdauer" },
+      "absence_flow_limit": { "name": "Abwesenheit – Durchfluss-Limit" },
+      "absence_volume_limit": { "name": "Abwesenheit – Volumen-Limit" },
+      "absence_duration_limit": { "name": "Abwesenheit – Dauer-Limit" }
+    },
+    "select": {
+      "vacation_type": { "name": "Urlaubstyp" },
+      "microleak_mode": { "name": "Mikroleck-Modus" }
+    }
   }
 }

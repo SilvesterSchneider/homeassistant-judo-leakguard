@@ -4,6 +4,17 @@
 
 Eine Home Assistant Custom Component für den **JUDO ZEWA i-SAFE** Leckageschutz mit JUDO Connectivity-Modul.
 
+> [!WARNING]
+> **Nutzung auf eigene Gefahr.** Dies ist ein privates Hobbyprojekt, weder von
+> JUDO entwickelt noch unterstützt oder geprüft. Die Integration kann das
+> Absperrventil schließen und öffnen sowie Leckageschutz-Einstellungen ändern.
+> Fehlerhafte Befehle oder Einstellungen können dazu führen, dass der
+> Leckageschutz nicht wie erwartet greift oder die Wasserversorgung
+> unterbrochen wird. Es wird keinerlei Gewähr oder Haftung für Schäden
+> übernommen, insbesondere nicht für Wasserschäden, Folgeschäden oder
+> Datenverlust. Prüfe nach jeder Änderung am Gerät selbst, ob es sich wie
+> erwartet verhält.
+
 ## Voraussetzungen
 
 - JUDO ZEWA i-SAFE (Gerätetyp `0x44`) mit eingebautem JUDO Connectivity-Modul
@@ -24,7 +35,7 @@ Eine Home Assistant Custom Component für den **JUDO ZEWA i-SAFE** Leckageschutz
 |---|---|---|
 | IP-Adresse / Hostname | IP oder `connectivity-XXXXX` des Geräts | – |
 | Benutzername | Web-Interface-Benutzername | `admin` |
-| Passwort | Web-Interface-Passwort | `Connectivity` |
+| Passwort | Web-Interface-Passwort (siehe Geräteanleitung; bitte ändern) | – |
 
 ## Entitäten
 
@@ -41,6 +52,10 @@ Eine Home Assistant Custom Component für den **JUDO ZEWA i-SAFE** Leckageschutz
 | `sensor.absence_flow_limit` | Abwesenheit – Durchfluss-Limit |
 | `sensor.absence_volume_limit` | Abwesenheit – Volumen-Limit |
 | `sensor.absence_duration_limit` | Abwesenheit – Dauer-Limit |
+| `sensor.daily_usage` | Verbrauch heute |
+| `sensor.weekly_usage` | Verbrauch diese Woche |
+| `sensor.monthly_usage` | Verbrauch dieser Monat |
+| `sensor.yearly_usage` | Verbrauch dieses Jahr |
 
 ### Binärsensoren
 | Entität | Beschreibung |
@@ -117,6 +132,15 @@ data:
 - Poll-Intervall: 30 Sekunden
 - Ventil/Sleep/Urlaubsmodus: Optimistische Zustandsverwaltung (kein Status-Readback möglich)
 
+## Sicherheit
+
+- Ändere das Standardpasswort des Connectivity-Moduls. Das Werkspasswort steht
+  in der öffentlichen JUDO-Anleitung und ist damit kein Schutz.
+- Die REST API spricht nur unverschlüsseltes HTTP. Das Gerät gehört in ein
+  abgeschottetes Netz, nicht ins Internet.
+- Zugangsdaten gehören nur in die Home-Assistant-Konfiguration, nie in dieses
+  Repository.
+
 ## Lizenz
 
-MIT
+MIT – ohne Gewährleistung, siehe Hinweis „Nutzung auf eigene Gefahr" oben.

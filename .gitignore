@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.scannerwork/
+
+# Herstellerunterlagen nur lokal – urheberrechtlich geschützt, enthalten Werkszugangsdaten
+requirements/
+
+# Zugangsdaten nie einchecken
+secrets.yaml
+.env
+*.env

@@ -4,7 +4,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 import aiohttp
@@ -37,9 +37,37 @@ def to_u16_be_hex(value: int) -> str:
     return f"{hi:02X}{lo:02X}"
 
 
+def to_u32_le_hex(value: int) -> str:
+    """Kodiert einen 32-bit-Wert Little-Endian als 8-stelligen Hex-String."""
+    b0 = value & 0xFF
+    b1 = (value >> 8) & 0xFF
+    b2 = (value >> 16) & 0xFF
+    b3 = (value >> 24) & 0xFF
+    return f"{b0:02X}{b1:02X}{b2:02X}{b3:02X}"
+
+
+def to_u32_be_hex(value: int) -> str:
+    """Kodiert einen 32-bit-Wert Big-Endian als 8-stelligen Hex-String."""
+    b3 = value & 0xFF
+    b2 = (value >> 8) & 0xFF
+    b1 = (value >> 16) & 0xFF
+    b0 = (value >> 24) & 0xFF
+    return f"{b0:02X}{b1:02X}{b2:02X}{b3:02X}"
+
+
+def from_u8(data: bytes, offset: int = 0) -> int:
+    """Liest einen 8-bit-Wert."""
+    return data[offset]
+
+
 def from_u16_le(data: bytes, offset: int = 0) -> int:
     """Liest einen 16-bit-Wert Little-Endian aus einem Byte-Array."""
     return data[offset] | (data[offset + 1] << 8)
+
+
+def from_u16_be(data: bytes, offset: int = 0) -> int:
+    """Liest einen 16-bit-Wert Big-Endian aus einem Byte-Array."""
+    return (data[offset] << 8) | data[offset + 1]
 
 
 def from_u32_le(data: bytes, offset: int = 0) -> int:
@@ -70,7 +98,7 @@ def hex_to_bytes(hex_str: str) -> bytes:
 # ── Datenmodelle ──────────────────────────────────────────────────────────────
 
 @dataclass
-class DeviceInfo:
+class JudoDeviceInfo:
     device_type: int
     serial_number: int
     fw_version: str
@@ -78,7 +106,7 @@ class DeviceInfo:
 
 
 @dataclass
-class DeviceStatus:
+class JudoDeviceStatus:
     total_water_liters: int
     sleep_hours: int
     learn_active: bool
@@ -88,6 +116,14 @@ class DeviceStatus:
     absence_volume_limit: int       # Liter
     absence_duration_limit: int     # Minuten
     device_datetime: datetime | None
+
+
+@dataclass
+class JudoConsumptionStats:
+    daily: list[int]
+    weekly: list[int]
+    monthly: list[int]
+    yearly: list[int]
 
 
 @dataclass
@@ -168,6 +204,8 @@ class JudoApiClient:
                         return payload.get("data", "")
                 except aiohttp.ClientError as exc:
                     raise JudoApiError(f"Verbindungsfehler: {exc}") from exc
+                except asyncio.TimeoutError as exc:
+                    raise JudoApiError(f"Zeitüberschreitung für {url}") from exc
 
             raise JudoApiError(f"Maximale Retries erreicht für {url}")
 
@@ -192,18 +230,18 @@ class JudoApiClient:
         try:
             b = hex_to_bytes(raw)
             ts = from_u32_be(b)
-            return datetime.utcfromtimestamp(ts)
+            return datetime.fromtimestamp(ts, tz=timezone.utc)
         except Exception:
             return None
 
-    async def get_device_info(self) -> DeviceInfo:
+    async def get_device_info(self) -> JudoDeviceInfo:
         device_type, serial, fw, commission = await asyncio.gather(
             self.get_device_type(),
             self.get_serial_number(),
             self.get_fw_version(),
             self.get_commission_date(),
         )
-        return DeviceInfo(
+        return JudoDeviceInfo(
             device_type=device_type,
             serial_number=serial,
             fw_version=fw,
@@ -244,6 +282,7 @@ class JudoApiClient:
         return flow, volume, duration
 
     async def get_device_datetime(self) -> datetime | None:
+        """Gerätezeit ohne Zeitzone – das Gerät läuft auf lokaler Zeit."""
         raw = await self._request("5900")
         try:
             b = hex_to_bytes(raw)
@@ -252,7 +291,7 @@ class JudoApiClient:
         except Exception:
             return None
 
-    async def get_status(self) -> DeviceStatus:
+    async def get_status(self) -> JudoDeviceStatus:
         """Liest alle Statuswerte in parallelen Requests."""
         (
             total_water,
@@ -271,7 +310,7 @@ class JudoApiClient:
         )
         learn_active, learn_remaining = learn_status
         flow, volume, duration = absence_limits
-        return DeviceStatus(
+        return JudoDeviceStatus(
             total_water_liters=total_water,
             sleep_hours=sleep_hours,
             learn_active=learn_active,
@@ -316,17 +355,17 @@ class JudoApiClient:
 
     async def set_sleep_hours(self, hours: int) -> None:
         """Setzt die Schlafdauer (1–10 h). Starten mit sleep_start()."""
-        cmd = f"53{to_u8_hex(hours):0>2}00"
+        cmd = f"5300{to_u8_hex(hours)}"
         await self._request(cmd)
 
     async def set_vacation_type(self, vtype: int) -> None:
         """Setzt den Urlaubstyp (0=aus, 1=U1, 2=U2, 3=U3)."""
-        cmd = f"56{to_u8_hex(vtype):0>2}00"
+        cmd = f"5600{to_u8_hex(vtype)}"
         await self._request(cmd)
 
     async def set_microleak_mode(self, mode: int) -> None:
         """Setzt den Mikroleck-Modus (0=off, 1=notify, 2=notify+close)."""
-        cmd = f"5B{to_u8_hex(mode):0>2}00"
+        cmd = f"5B00{to_u8_hex(mode)}"
         await self._request(cmd)
 
     async def set_absence_limits(
@@ -357,7 +396,7 @@ class JudoApiClient:
 
     async def read_absence_schedule(self, index: int) -> AbsenceWindow:
         """Liest einen Abwesenheitszeitraum (Index 0–6)."""
-        raw = await self._request(f"60{to_u8_hex(index):0>2}00")
+        raw = await self._request(f"6000{to_u8_hex(index)}")
         b = hex_to_bytes(raw)
         return AbsenceWindow(
             index=index,
@@ -384,33 +423,28 @@ class JudoApiClient:
 
     async def delete_absence_schedule(self, index: int) -> None:
         """Löscht einen Abwesenheitszeitraum."""
-        await self._request(f"62{to_u8_hex(index):0>2}00")
+        await self._request(f"6200{to_u8_hex(index)}")
 
     # ── Statistiken ───────────────────────────────────────────────────────────
+    # Das Jahr geht laut ZEWA-Doku Big-Endian raus: /api/rest/FE0007E7 = 2023.
 
     async def get_daily_usage(self, day: int, month: int, year: int) -> list[int]:
         """Tagesstatistik: 8 Werte à 3h (0:00, 3:00, …, 21:00) in Litern."""
-        yr_hi = (year >> 8) & 0xFF
-        yr_lo = year & 0xFF
-        cmd = f"FB00{to_u8_hex(day)}{to_u8_hex(month)}{yr_lo:02X}{yr_hi:02X}"
+        cmd = f"FB00{to_u8_hex(day)}{to_u8_hex(month)}{to_u16_be_hex(year)}"
         raw = await self._request(cmd)
         b = hex_to_bytes(raw)
         return [from_u32_le(b, i * 4) for i in range(8)]
 
     async def get_weekly_usage(self, week: int, year: int) -> list[int]:
         """Wochenstatistik: 7 Werte (Mo–So) in Litern."""
-        yr_hi = (year >> 8) & 0xFF
-        yr_lo = year & 0xFF
-        cmd = f"FC00{to_u8_hex(week)}{yr_lo:02X}{yr_hi:02X}"
+        cmd = f"FC00{to_u8_hex(week)}{to_u16_be_hex(year)}"
         raw = await self._request(cmd)
         b = hex_to_bytes(raw)
         return [from_u32_le(b, i * 4) for i in range(7)]
 
     async def get_monthly_usage(self, month: int, year: int) -> list[int]:
         """Monatsstatistik: bis zu 31 Tageswerte in Litern."""
-        yr_hi = (year >> 8) & 0xFF
-        yr_lo = year & 0xFF
-        cmd = f"FD00{to_u8_hex(month)}{yr_lo:02X}{yr_hi:02X}"
+        cmd = f"FD00{to_u8_hex(month)}{to_u16_be_hex(year)}"
         raw = await self._request(cmd)
         b = hex_to_bytes(raw)
         count = len(b) // 4
@@ -418,9 +452,7 @@ class JudoApiClient:
 
     async def get_yearly_usage(self, year: int) -> list[int]:
         """Jahresstatistik: 12 Monatswerte in Litern."""
-        yr_hi = (year >> 8) & 0xFF
-        yr_lo = year & 0xFF
-        cmd = f"FE00{yr_lo:02X}{yr_hi:02X}"
+        cmd = f"FE00{to_u16_be_hex(year)}"
         raw = await self._request(cmd)
         b = hex_to_bytes(raw)
         return [from_u32_le(b, i * 4) for i in range(12)]

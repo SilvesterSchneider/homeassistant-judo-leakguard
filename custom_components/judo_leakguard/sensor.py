@@ -17,9 +17,21 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import dt as dt_util
 
 from .const import DEVICE_TYPE_NAMES, DOMAIN, MICROLEAK_MODES
 from .coordinator import JudoData, JudoDataUpdateCoordinator
+
+
+def _as_local(value: datetime | None) -> datetime | None:
+    """Die Gerätezeit hat keine Zeitzone – HA verlangt eine für TIMESTAMP."""
+    if value is None or value.tzinfo is not None:
+        return value
+    return value.replace(tzinfo=dt_util.get_default_time_zone())
+
+
+def _stat_sum(values: list[int] | None) -> int | None:
+    return None if values is None else sum(values)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -116,7 +128,44 @@ SENSOR_DESCRIPTIONS: tuple[JudoSensorEntityDescription, ...] = (
         name="Gerätedatum/-zeit",
         icon="mdi:clock-outline",
         device_class=SensorDeviceClass.TIMESTAMP,
-        value_fn=lambda d: d.status.device_datetime,
+        value_fn=lambda d: _as_local(d.status.device_datetime),
+    ),
+    # ── Statistiken ───────────────────────────────────────────────────────────
+    JudoSensorEntityDescription(
+        key="daily_usage",
+        name="Verbrauch heute",
+        icon="mdi:water-plus",
+        native_unit_of_measurement=UnitOfVolume.LITERS,
+        device_class=SensorDeviceClass.WATER,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        value_fn=lambda d: _stat_sum(d.stats and d.stats.daily),
+    ),
+    JudoSensorEntityDescription(
+        key="weekly_usage",
+        name="Verbrauch diese Woche",
+        icon="mdi:water-plus",
+        native_unit_of_measurement=UnitOfVolume.LITERS,
+        device_class=SensorDeviceClass.WATER,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        value_fn=lambda d: _stat_sum(d.stats and d.stats.weekly),
+    ),
+    JudoSensorEntityDescription(
+        key="monthly_usage",
+        name="Verbrauch dieser Monat",
+        icon="mdi:water-plus",
+        native_unit_of_measurement=UnitOfVolume.LITERS,
+        device_class=SensorDeviceClass.WATER,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        value_fn=lambda d: _stat_sum(d.stats and d.stats.monthly),
+    ),
+    JudoSensorEntityDescription(
+        key="yearly_usage",
+        name="Verbrauch dieses Jahr",
+        icon="mdi:water-plus",
+        native_unit_of_measurement=UnitOfVolume.LITERS,
+        device_class=SensorDeviceClass.WATER,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        value_fn=lambda d: _stat_sum(d.stats and d.stats.yearly),
     ),
 )
 
