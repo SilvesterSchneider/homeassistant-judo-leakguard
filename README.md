@@ -46,7 +46,8 @@ Eine Home Assistant Custom Component für den **JUDO ZEWA i-SAFE** Leckageschutz
 | `sensor.device_serial` | Seriennummer |
 | `sensor.device_firmware` | Firmware-Version |
 | `sensor.installation_date` | Inbetriebnahmedatum |
-| `sensor.device_datetime` | Geräteuhrzeit |
+| `sensor.device_datetime` | Geräteuhrzeit (Diagnose, standardmäßig deaktiviert) |
+| `sensor.clock_offset` | Abweichung der Geräteuhr gegenüber HA in Sekunden |
 | `sensor.sleep_duration` | Eingestellte Schlafdauer |
 | `sensor.learning_remaining_water` | Lernmodus Restwasser |
 | `sensor.absence_flow_limit` | Abwesenheit – Durchfluss-Limit |
@@ -87,7 +88,7 @@ Eine Home Assistant Custom Component für den **JUDO ZEWA i-SAFE** Leckageschutz
 ### Auswahl
 | Entität | Beschreibung |
 |---|---|
-| `select.vacation_type` | Urlaubstyp (off / u1 / u2 / u3) |
+| `select.vacation_type` | Urlaubstyp (off / u1 / u2 / u3), optimistisch – das Gerät meldet ihn nicht zurück |
 | `select.microleak_mode` | Mikroleck-Modus (off / notify / notify_and_close) |
 
 ## Services

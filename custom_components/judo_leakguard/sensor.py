@@ -12,7 +12,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import UnitOfVolume
+from homeassistant.const import EntityCategory, UnitOfTime, UnitOfVolume
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -28,6 +28,14 @@ def _as_local(value: datetime | None) -> datetime | None:
     if value is None or value.tzinfo is not None:
         return value
     return value.replace(tzinfo=dt_util.get_default_time_zone())
+
+
+def _clock_offset(value: datetime | None) -> int | None:
+    """Wie weit die Geräteuhr gegenüber HA vorgeht (positiv) oder nachgeht."""
+    local = _as_local(value)
+    if local is None:
+        return None
+    return round((local - dt_util.now()).total_seconds())
 
 
 def _stat_sum(values: list[int] | None) -> int | None:
@@ -128,7 +136,20 @@ SENSOR_DESCRIPTIONS: tuple[JudoSensorEntityDescription, ...] = (
         name="Gerätedatum/-zeit",
         icon="mdi:clock-outline",
         device_class=SensorDeviceClass.TIMESTAMP,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        # Ändert sich bei jeder Abfrage und füllt sonst das Logbuch
+        entity_registry_enabled_default=False,
         value_fn=lambda d: _as_local(d.status.device_datetime),
+    ),
+    JudoSensorEntityDescription(
+        key="clock_offset",
+        name="Uhrzeit-Abweichung",
+        icon="mdi:clock-alert-outline",
+        native_unit_of_measurement=UnitOfTime.SECONDS,
+        device_class=SensorDeviceClass.DURATION,
+        state_class=SensorStateClass.MEASUREMENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=lambda d: _clock_offset(d.status.device_datetime),
     ),
     # ── Statistiken ───────────────────────────────────────────────────────────
     JudoSensorEntityDescription(

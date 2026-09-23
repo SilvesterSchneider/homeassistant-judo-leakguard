@@ -35,6 +35,7 @@
       "absence_volume_limit": { "name": "Absence volume limit" },
       "absence_duration_limit": { "name": "Absence duration limit" },
       "device_datetime": { "name": "Device date/time" },
+      "clock_offset": { "name": "Clock offset" },
       "daily_usage": { "name": "Usage today" },
       "weekly_usage": { "name": "Usage this week" },
       "monthly_usage": { "name": "Usage this month" },

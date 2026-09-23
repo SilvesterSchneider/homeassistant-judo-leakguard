@@ -427,20 +427,22 @@ class JudoApiClient:
 
     # ── Statistiken ───────────────────────────────────────────────────────────
     # Das Jahr geht laut ZEWA-Doku Big-Endian raus: /api/rest/FE0007E7 = 2023.
+    # Die Werte kommen ebenfalls Big-Endian zurück (am Gerät geprüft:
+    # Little-Endian gelesen ergab Milliarden Liter pro Woche).
 
     async def get_daily_usage(self, day: int, month: int, year: int) -> list[int]:
         """Tagesstatistik: 8 Werte à 3h (0:00, 3:00, …, 21:00) in Litern."""
         cmd = f"FB00{to_u8_hex(day)}{to_u8_hex(month)}{to_u16_be_hex(year)}"
         raw = await self._request(cmd)
         b = hex_to_bytes(raw)
-        return [from_u32_le(b, i * 4) for i in range(8)]
+        return [from_u32_be(b, i * 4) for i in range(8)]
 
     async def get_weekly_usage(self, week: int, year: int) -> list[int]:
         """Wochenstatistik: 7 Werte (Mo–So) in Litern."""
         cmd = f"FC00{to_u8_hex(week)}{to_u16_be_hex(year)}"
         raw = await self._request(cmd)
         b = hex_to_bytes(raw)
-        return [from_u32_le(b, i * 4) for i in range(7)]
+        return [from_u32_be(b, i * 4) for i in range(7)]
 
     async def get_monthly_usage(self, month: int, year: int) -> list[int]:
         """Monatsstatistik: bis zu 31 Tageswerte in Litern."""
@@ -448,11 +450,11 @@ class JudoApiClient:
         raw = await self._request(cmd)
         b = hex_to_bytes(raw)
         count = len(b) // 4
-        return [from_u32_le(b, i * 4) for i in range(count)]
+        return [from_u32_be(b, i * 4) for i in range(count)]
 
     async def get_yearly_usage(self, year: int) -> list[int]:
         """Jahresstatistik: 12 Monatswerte in Litern."""
         cmd = f"FE00{to_u16_be_hex(year)}"
         raw = await self._request(cmd)
         b = hex_to_bytes(raw)
-        return [from_u32_le(b, i * 4) for i in range(12)]
+        return [from_u32_be(b, i * 4) for i in range(12)]

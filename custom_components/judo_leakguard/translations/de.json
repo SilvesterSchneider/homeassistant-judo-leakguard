@@ -35,6 +35,7 @@
       "absence_volume_limit": { "name": "Abwesenheit – Volumen-Limit" },
       "absence_duration_limit": { "name": "Abwesenheit – Dauer-Limit" },
       "device_datetime": { "name": "Gerätedatum/-zeit" },
+      "clock_offset": { "name": "Uhrzeit-Abweichung" },
       "daily_usage": { "name": "Verbrauch heute" },
       "weekly_usage": { "name": "Verbrauch diese Woche" },
       "monthly_usage": { "name": "Verbrauch dieser Monat" },
