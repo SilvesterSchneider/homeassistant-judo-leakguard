@@ -36,7 +36,7 @@
       "absence_duration_limit": { "name": "Absence duration limit" },
       "device_datetime": { "name": "Device date/time" },
       "clock_offset": { "name": "Clock offset" },
-      "daily_usage": { "name": "Usage today" },
+      "yesterday_usage": { "name": "Usage yesterday" },
       "weekly_usage": { "name": "Usage this week" },
       "monthly_usage": { "name": "Usage this month" },
       "yearly_usage": { "name": "Usage this year" }
@@ -52,7 +52,6 @@
       "start_learning": { "name": "Start learning mode" }
     },
     "number": {
-      "sleep_hours": { "name": "Sleep duration" },
       "absence_flow_limit": { "name": "Absence flow limit" },
       "absence_volume_limit": { "name": "Absence volume limit" },
       "absence_duration_limit": { "name": "Absence duration limit" }

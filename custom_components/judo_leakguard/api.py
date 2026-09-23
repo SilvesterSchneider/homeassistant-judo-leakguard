@@ -120,7 +120,7 @@ class JudoDeviceStatus:
 
 @dataclass
 class JudoConsumptionStats:
-    daily: list[int]
+    yesterday: list[int]  # Tageswerte gibt das Gerät erst nach Tagesende heraus
     weekly: list[int]
     monthly: list[int]
     yearly: list[int]
@@ -354,7 +354,11 @@ class JudoApiClient:
     # ── Konfiguration ─────────────────────────────────────────────────────────
 
     async def set_sleep_hours(self, hours: int) -> None:
-        """Setzt die Schlafdauer (1–10 h). Starten mit sleep_start()."""
+        """Setzt die Schlafdauer (1–10 h). Starten mit sleep_start().
+
+        Achtung: Firmware 1.32i quittiert den Befehl, übernimmt den Wert aber
+        nicht. Deshalb bietet die Integration dafür keine Entität an.
+        """
         cmd = f"5300{to_u8_hex(hours)}"
         await self._request(cmd)
 

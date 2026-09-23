@@ -36,7 +36,7 @@
       "absence_duration_limit": { "name": "Abwesenheit – Dauer-Limit" },
       "device_datetime": { "name": "Gerätedatum/-zeit" },
       "clock_offset": { "name": "Uhrzeit-Abweichung" },
-      "daily_usage": { "name": "Verbrauch heute" },
+      "yesterday_usage": { "name": "Verbrauch gestern" },
       "weekly_usage": { "name": "Verbrauch diese Woche" },
       "monthly_usage": { "name": "Verbrauch dieser Monat" },
       "yearly_usage": { "name": "Verbrauch dieses Jahr" }
@@ -52,7 +52,6 @@
       "start_learning": { "name": "Lernmodus starten" }
     },
     "number": {
-      "sleep_hours": { "name": "Schlafdauer" },
       "absence_flow_limit": { "name": "Abwesenheit – Durchfluss-Limit" },
       "absence_volume_limit": { "name": "Abwesenheit – Volumen-Limit" },
       "absence_duration_limit": { "name": "Abwesenheit – Dauer-Limit" }

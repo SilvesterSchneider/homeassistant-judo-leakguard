@@ -53,7 +53,7 @@ Eine Home Assistant Custom Component für den **JUDO ZEWA i-SAFE** Leckageschutz
 | `sensor.absence_flow_limit` | Abwesenheit – Durchfluss-Limit |
 | `sensor.absence_volume_limit` | Abwesenheit – Volumen-Limit |
 | `sensor.absence_duration_limit` | Abwesenheit – Dauer-Limit |
-| `sensor.daily_usage` | Verbrauch heute |
+| `sensor.yesterday_usage` | Verbrauch gestern (das Gerät liefert Tageswerte erst nach Tagesende; für „heute“ einen Verbrauchszähler-Helfer auf `sensor.total_water_liters` anlegen) |
 | `sensor.weekly_usage` | Verbrauch diese Woche |
 | `sensor.monthly_usage` | Verbrauch dieser Monat |
 | `sensor.yearly_usage` | Verbrauch dieses Jahr |
@@ -80,7 +80,6 @@ Eine Home Assistant Custom Component für den **JUDO ZEWA i-SAFE** Leckageschutz
 ### Zahlen (konfigurierbar)
 | Entität | Beschreibung |
 |---|---|
-| `number.sleep_hours` | Schlafdauer (1–10 h) |
 | `number.absence_flow_limit` | Abwesenheit – Durchfluss-Limit (L/h) |
 | `number.absence_volume_limit` | Abwesenheit – Volumen-Limit (L) |
 | `number.absence_duration_limit` | Abwesenheit – Dauer-Limit (min) |

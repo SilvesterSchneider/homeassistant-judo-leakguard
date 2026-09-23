@@ -153,13 +153,13 @@ SENSOR_DESCRIPTIONS: tuple[JudoSensorEntityDescription, ...] = (
     ),
     # ── Statistiken ───────────────────────────────────────────────────────────
     JudoSensorEntityDescription(
-        key="daily_usage",
-        name="Verbrauch heute",
+        key="yesterday_usage",
+        name="Verbrauch gestern",
         icon="mdi:water-plus",
         native_unit_of_measurement=UnitOfVolume.LITERS,
         device_class=SensorDeviceClass.WATER,
-        state_class=SensorStateClass.TOTAL_INCREASING,
-        value_fn=lambda d: _stat_sum(d.stats and d.stats.daily),
+        # Abgeschlossener Tageswert, kein Zähler – daher ohne state_class
+        value_fn=lambda d: _stat_sum(d.stats and d.stats.yesterday),
     ),
     JudoSensorEntityDescription(
         key="weekly_usage",

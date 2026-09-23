@@ -32,19 +32,8 @@ class JudoNumberEntityDescription(NumberEntityDescription):
 
 
 NUMBER_DESCRIPTIONS: tuple[JudoNumberEntityDescription, ...] = (
-    # ── Schlafdauer ───────────────────────────────────────────────────────────
-    JudoNumberEntityDescription(
-        key="sleep_hours",
-        name="Schlafdauer",
-        icon="mdi:sleep",
-        native_min_value=1,
-        native_max_value=10,
-        native_step=1,
-        native_unit_of_measurement="h",
-        mode=NumberMode.BOX,
-        value_fn=lambda d: d.status.sleep_hours,
-        set_fn=lambda c, v: c.set_sleep_hours(int(v)),
-    ),
+    # Schlafdauer gibt es bewusst nur als Sensor: Firmware 1.32i nimmt den
+    # Schreibbefehl 53 an, übernimmt den Wert aber nicht (am Gerät geprüft).
     # ── Abwesenheit: Durchfluss-Limit ─────────────────────────────────────────
     JudoNumberEntityDescription(
         key="absence_flow_limit",

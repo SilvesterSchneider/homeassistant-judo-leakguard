@@ -67,11 +67,13 @@ async def _gather_stats(client: JudoApiClient) -> JudoConsumptionStats | None:
 
     # Lokales Datum von HA, nicht die Systemzeit des Containers
     now = dt_util.now()
+    yesterday = now - timedelta(days=1)
     week_year, week, _ = now.isocalendar()
 
     try:
+        # Für heute liefert das Gerät nur Nullen, deshalb der Vortag
         daily, weekly, monthly, yearly = await asyncio.gather(
-            client.get_daily_usage(now.day, now.month, now.year),
+            client.get_daily_usage(yesterday.day, yesterday.month, yesterday.year),
             client.get_weekly_usage(week, week_year),
             client.get_monthly_usage(now.month, now.year),
             client.get_yearly_usage(now.year),
@@ -80,5 +82,5 @@ async def _gather_stats(client: JudoApiClient) -> JudoConsumptionStats | None:
         _LOGGER.debug("Statistik nicht verfügbar: %s", exc)
         return None
     return JudoConsumptionStats(
-        daily=daily, weekly=weekly, monthly=monthly, yearly=yearly
+        yesterday=daily, weekly=weekly, monthly=monthly, yearly=yearly
     )
